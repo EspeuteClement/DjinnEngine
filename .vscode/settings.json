@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "*.inc": "gbz80",
+        "cstdio": "cpp"
+    }
+}
