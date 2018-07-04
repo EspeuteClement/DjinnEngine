@@ -60,24 +60,26 @@ void UnloadGameCode(game_code_data& data)
 
 int main(int argc, char* args[])
 {
-    SDL_Window* window = NULL;
-    SDL_Surface* screenSurface = NULL;
+    Memory memory = {};
+
+    memory.window = NULL;
+
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
         fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
         return 1;
     }
-    window = SDL_CreateWindow(
+    memory.window = SDL_CreateWindow(
                     "hello_sdl2",
                     SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                     SCREEN_WIDTH, SCREEN_HEIGHT,
                     SDL_WINDOW_SHOWN
                     );
-    if (window == NULL) {
+    if (memory.window == NULL) {
         fprintf(stderr, "could not create window: %s\n", SDL_GetError());
         return 1;
     }
 
-    Memory mem = {0};
+
 
     game_code_data code_data = LoadGameCode();
 
@@ -85,7 +87,7 @@ int main(int argc, char* args[])
     {
         while(1)
         {
-            code_data.game_loop(&mem);
+            code_data.game_loop(&memory);
             SDL_Delay(20);
             FILETIME currentFileTime = Win32GetLastWirteTime("game.dll");
             if (CompareFileTime(&currentFileTime, &code_data.lastWriteTime) > 0)
@@ -103,12 +105,7 @@ int main(int argc, char* args[])
         printf("Couldn't load library zerjhzdjkfsdf: %s\n", SDL_GetError());
     }
 
-
-    screenSurface = SDL_GetWindowSurface(window);
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-    SDL_UpdateWindowSurface(window);
-    SDL_Delay(2000);
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(memory.window);
         SDL_Quit();
     return(0);
 }

@@ -9,6 +9,7 @@ struct Memory
 {
     s32 x;
     s32 y;
+    struct SDL_Window* window;
 };
 
 #define GAME_LOOP(name) void name(Memory* memory)

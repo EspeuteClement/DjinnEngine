@@ -10,8 +10,8 @@ set FLAGS=/INCREMENTAL:NO -FC
 
 IF NOT EXIST %~dp0build mkdir %~dp0build
 pushd %~dp0build
-del /Q *.pdb 2> NUL
-cl /Fdgame.%RANDOM%.pdb %FLAGS% /Zi ../src/game.cpp /DLL /LD /nologo /link /INCREMENTAL:NO
+del /Q *.pdb > NUL 2> NUL
+cl  %FLAGS% /Zi ../src/game.cpp %LINKDIR%x86/SDL2.lib /DLL /LD /nologo /link /INCREMENTAL:NO /PDB:game.%random%.pdb
 cl  %FLAGS% /Zi ../src/win32_platform.cpp %LIBS% /nologo /link /INCREMENTAL:NO
 echo %time%
 popd

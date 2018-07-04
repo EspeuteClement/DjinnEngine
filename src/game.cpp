@@ -1,37 +1,18 @@
 #include "windows.h"
 #include "game.h"
 #include <cstdio>
+#include "include/sdl2/SDL.h"
 
 GAME_LOOP(game_loop)
 {
-    printf("%5d : 8\n", memory->x);
-    memory->x ++;
-}
+    printf("%5d : Bless this mess !\n", memory->x);
+    memory->x ++ ;
 
-BOOL WINAPI DllMain(
-    HINSTANCE hinstDLL,  // handle to DLL module
-    DWORD fdwReason,     // reason for calling function
-    LPVOID lpReserved )  // reserved
-{
-    // Perform actions based on the reason for calling.
-    switch( fdwReason ) 
-    { 
-        case DLL_PROCESS_ATTACH:
-         // Initialize once for each new process.
-         // Return FALSE to fail DLL load.
-            break;
-
-        case DLL_THREAD_ATTACH:
-         // Do thread-specific initialization.
-            break;
-
-        case DLL_THREAD_DETACH:
-         // Do thread-specific cleanup.
-            break;
-
-        case DLL_PROCESS_DETACH:
-         // Perform any necessary cleanup.
-            break;
-    }
-    return TRUE;  // Successful DLL_PROCESS_ATTACH.
+        SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+    };
+    SDL_Surface* screenSurface = SDL_GetWindowSurface(memory->window);
+    uint8_t color = memory->x%256;
+    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, color, color, color));
+    SDL_UpdateWindowSurface(memory->window);
 }
