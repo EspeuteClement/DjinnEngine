@@ -1,6 +1,9 @@
 {
     "files.associations": {
         "*.inc": "gbz80",
-        "cstdio": "cpp"
+        "cstdio": "cpp",
+        "internal.h": "c",
+        "win32_platform.h": "c",
+        "cstdint": "cpp"
     }
 }

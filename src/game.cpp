@@ -1,18 +1,94 @@
-#include "windows.h"
 #include "game.h"
 #include <cstdio>
-#include "include/sdl2/SDL.h"
+#include "external/include/glad/glad.h"
+#include "external/linmath.h"
+
+static const struct
+{
+    float x, y;
+    float r, g, b;
+} vertices[3] =
+{
+    { -0.6f, -0.4f, 1.f, 1.f, 1.f },
+    {  0.6f, -0.4f, 1.f, 1.f, 1.f },
+    {   0.f,  0.6f, 1.f, 1.f, 1.f }
+};
+static const char* vertex_shader_text =
+"uniform mat4 MVP;\n"
+"attribute vec3 vCol;\n"
+"attribute vec2 vPos;\n"
+"varying vec3 color;\n"
+"void main()\n"
+"{\n"
+"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
+"    color = vCol;\n"
+"}\n";
+static const char* fragment_shader_text =
+"varying vec3 color;\n"
+"void main()\n"
+"{\n"
+"    gl_FragColor = vec4(color, 1.0);\n"
+"}\n";
+
+    GLuint vertex_buffer, vertex_shader, fragment_shader, program;
+    GLint mvp_location, vpos_location, vcol_location;
+
+GAME_INIT_GRAPHIC(game_init_graphic)
+{
+	gladLoadGLLoader((GLADloadproc)memory->glfwGetProcAddress);
+
+    glGenBuffers(1, &vertex_buffer);
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
+    glCompileShader(vertex_shader);
+    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
+    glCompileShader(fragment_shader);
+    program = glCreateProgram();
+    glAttachShader(program, vertex_shader);
+    glAttachShader(program, fragment_shader);
+    glLinkProgram(program);
+    mvp_location = glGetUniformLocation(program, "MVP");
+    vpos_location = glGetAttribLocation(program, "vPos");
+    vcol_location = glGetAttribLocation(program, "vCol");
+    glEnableVertexAttribArray(vpos_location);
+    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(float) * 5, (void*) 0);
+    glEnableVertexAttribArray(vcol_location);
+    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(float) * 5, (void*) (sizeof(float) * 2));
+}
+
 
 GAME_LOOP(game_loop)
 {
-    printf("%5d : Bless this mess !\n", memory->x);
-    memory->x ++ ;
+    float ratio;
+    int width, height;
+    mat4x4 m, p, mvp;
 
-        SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-    };
-    SDL_Surface* screenSurface = SDL_GetWindowSurface(memory->window);
-    uint8_t color = memory->x%256;
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, color, color, color));
-    SDL_UpdateWindowSurface(memory->window);
+    ratio = memory->screen_width / (float) memory->screen_height;
+    glViewport(0, 0, memory->screen_width, memory->screen_height);
+    glClear(GL_COLOR_BUFFER_BIT);
+    mat4x4_identity(m);
+
+    
+    mat4x4_rotate_Z(m, m, (float) -memory->x/5);
+
+
+    mat4x4_ortho(p, -ratio, ratio, -1.f, 1.f, 1.f, -1.f);
+    mat4x4_mul(mvp, p, m);
+    glUseProgram(program);
+    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+
+
+    printf("%5d : !\n", memory->x);
+    memory->x ++ ;
+}
+
+GAME_UNLOAD_GRAPHIC(game_unload_graphic)
+{
+    // Do nothing at the moment
 }

@@ -31,7 +31,7 @@ game_code_data LoadGameCode()
 
     game_code_data Result = {};
 
-    
+
 
     // Parameters
     const char* funcname = "game_loop";
