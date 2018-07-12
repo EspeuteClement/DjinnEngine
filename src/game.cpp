@@ -29,33 +29,34 @@ static const char* fragment_shader_text =
 "    gl_FragColor = vec4(color, 1.0);\n"
 "}\n";
 
-    /*GLuint vertex_buffer, vertex_shader, fragment_shader, program;
-    GLint mvp_location, vpos_location, vcol_location;*/
+    GLuint vertex_buffer, vertex_shader, fragment_shader, program;
+    GLint mvp_location, vpos_location, vcol_location;
 
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
-    /*glGenBuffers(1, &vertex_buffer);
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
-    glCompileShader(vertex_shader);
-    fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
-    glCompileShader(fragment_shader);
-    program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-    mvp_location = glGetUniformLocation(program, "MVP");
-    vpos_location = glGetAttribLocation(program, "vPos");
-    vcol_location = glGetAttribLocation(program, "vCol");
-    glEnableVertexAttribArray(vpos_location);
-    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
+    uGlLoadGL(memory->proc, &(memory->ctxt));
+    memory->ctxt.glGenBuffers(1, &vertex_buffer);
+    memory->ctxt.glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    memory->ctxt.glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    vertex_shader = memory->ctxt.glCreateShader(GL_VERTEX_SHADER);
+    memory->ctxt.glShaderSource(vertex_shader, 1, &vertex_shader_text, NULL);
+    memory->ctxt.glCompileShader(vertex_shader);
+    fragment_shader = memory->ctxt.glCreateShader(GL_FRAGMENT_SHADER);
+    memory->ctxt.glShaderSource(fragment_shader, 1, &fragment_shader_text, NULL);
+    memory->ctxt.glCompileShader(fragment_shader);
+    program = memory->ctxt.glCreateProgram();
+    memory->ctxt.glAttachShader(program, vertex_shader);
+    memory->ctxt.glAttachShader(program, fragment_shader);
+    memory->ctxt.glLinkProgram(program);
+    mvp_location = memory->ctxt.glGetUniformLocation(program, "MVP");
+    vpos_location = memory->ctxt.glGetAttribLocation(program, "vPos");
+    vcol_location = memory->ctxt.glGetAttribLocation(program, "vCol");
+    memory->ctxt.glEnableVertexAttribArray(vpos_location);
+    memory->ctxt.glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
                           sizeof(float) * 5, (void*) 0);
-    glEnableVertexAttribArray(vcol_location);
-    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(float) * 5, (void*) (sizeof(float) * 2));*/
+    memory->ctxt.glEnableVertexAttribArray(vcol_location);
+    memory->ctxt.glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(float) * 5, (void*) (sizeof(float) * 2));
 }
 
 

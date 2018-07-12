@@ -17,6 +17,7 @@ struct Memory
     s32 screen_height;
     
     uglCtxt ctxt;
+    uGlLoadProc proc;
 };
 
 #define GAME_LOOP(name) void name(Memory* memory)

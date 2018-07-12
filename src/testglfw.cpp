@@ -96,8 +96,9 @@ int main(int argc, char* args[])
         return(-1);
     }
 
-    uGlLoadGL((uGlLoadProc)glfwGetProcAddress, &(memory.ctxt));
+    //uGlLoadGL((uGlLoadProc)glfwGetProcAddress, &(memory.ctxt));
 
+    memory.proc = (uGlLoadProc) glfwGetProcAddress;
     code_data.game_init_graphic(&memory);
 
     /* Loop until the user closes the window */
