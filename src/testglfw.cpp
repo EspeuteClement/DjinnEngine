@@ -1,7 +1,5 @@
 #include "windows.h"
 
-#include "external/include/glad/glad.h"
-
 #include "external/include/GLFW/glfw3.h"
 
 #include "utils/utils.h"
@@ -91,14 +89,14 @@ int main(int argc, char* args[])
 
     Memory memory = {};
 
-    memory.glfwGetProcAddress = glfwGetProcAddress;
-
     game_code_data code_data = LoadGameCode();
 
     if (!code_data.game_loop)
     {
         return(-1);
     }
+
+    uGlLoadGL((uGlLoadProc)glfwGetProcAddress, &(memory.ctxt));
 
     code_data.game_init_graphic(&memory);
 

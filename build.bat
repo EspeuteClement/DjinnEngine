@@ -6,13 +6,13 @@ rem set INCLUDE=INCLUDE="D:\Program Files (x86)\Microsoft Visual Studio\2017\Com
 echo %time%
 set LINKDIR=../lib/
 set LIBS=Gdi32.lib kernel32.lib user32.lib Shell32.lib opengl32.lib Winmm.lib
-set FLAGS=/INCREMENTAL:NO -FC
+set FLAGS=/O2 /INCREMENTAL:NO -FC
 
 IF NOT EXIST %~dp0build mkdir %~dp0build
 pushd %~dp0build
 del /Q *.pdb > NUL 2> NUL
-cl  %FLAGS% /Zi ../src/game.cpp ../src/external/glad/glad.c -I../src/external/include /DLL /LD /nologo /link /INCREMENTAL:NO /PDB:game.%random%.pdb
-cl  %FLAGS% /Zi /D_GLFW_WIN32 /Zi ../src/testglfw.cpp ../src/external/external.all.c %LIBS% -I../src/external/include  /nologo /link /INCREMENTAL:NO /PDB:testglfw.%random%.pdb
+cl  %FLAGS% ../src/game.cpp -I../src/external/include /DLL /LD /nologo /link /INCREMENTAL:NO /PDB:game.%random%.pdb
+cl  %FLAGS%  /D_GLFW_WIN32 ../src/testglfw.cpp ../src/external/ugl.c ../src/external/external.all.c %LIBS% -I../src/external/include  /nologo /link /INCREMENTAL:NO /PDB:testglfw.%random%.pdb
 echo %time%
 popd
 

@@ -5,6 +5,9 @@ typedef int64_t s64;
 typedef float   r32;
 typedef double  r64;
 
+#include "external/ugl.h"
+
+
 struct Memory
 {
     s32 x;
@@ -12,8 +15,8 @@ struct Memory
     
     s32 screen_width;
     s32 screen_height;
-
-    void* glfwGetProcAddress;
+    
+    uglCtxt ctxt;
 };
 
 #define GAME_LOOP(name) void name(Memory* memory)

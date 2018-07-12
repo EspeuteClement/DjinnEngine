@@ -1,6 +1,5 @@
 #include "game.h"
 #include <cstdio>
-#include "external/include/glad/glad.h"
 #include "external/linmath.h"
 
 static const struct
@@ -30,14 +29,12 @@ static const char* fragment_shader_text =
 "    gl_FragColor = vec4(color, 1.0);\n"
 "}\n";
 
-    GLuint vertex_buffer, vertex_shader, fragment_shader, program;
-    GLint mvp_location, vpos_location, vcol_location;
+    /*GLuint vertex_buffer, vertex_shader, fragment_shader, program;
+    GLint mvp_location, vpos_location, vcol_location;*/
 
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
-	gladLoadGLLoader((GLADloadproc)memory->glfwGetProcAddress);
-
-    glGenBuffers(1, &vertex_buffer);
+    /*glGenBuffers(1, &vertex_buffer);
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -58,13 +55,13 @@ GAME_INIT_GRAPHIC(game_init_graphic)
                           sizeof(float) * 5, (void*) 0);
     glEnableVertexAttribArray(vcol_location);
     glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(float) * 5, (void*) (sizeof(float) * 2));
+                          sizeof(float) * 5, (void*) (sizeof(float) * 2));*/
 }
 
 
 GAME_LOOP(game_loop)
 {
-    float ratio;
+    /*float ratio;
     int width, height;
     mat4x4 m, p, mvp;
 
@@ -81,10 +78,10 @@ GAME_LOOP(game_loop)
     mat4x4_mul(mvp, p, m);
     glUseProgram(program);
     glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glDrawArrays(GL_TRIANGLES, 0, 3);*/
 
 
-    printf("%5d : !\n", memory->x);
+    printf("%5d : Sup ! !\n", memory->x);
     memory->x ++ ;
 }
 
