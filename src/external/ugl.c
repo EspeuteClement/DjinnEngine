@@ -1,7 +1,29 @@
 #include "ugl.h"
 
-#define UGL_LOAD(name) ctxt-> ## name = (UGL_HANDLE(name)) proc(#name)
-int uGlLoadGL(uGlLoadProc proc, uglCtxt* ctxt)
+#define UGL_STORE(name) UGL_HANDLE(name) name
+
+UGL_STORE(glGenBuffers);
+UGL_STORE(glBindBuffer);
+UGL_STORE(glBufferData);
+UGL_STORE(glCreateShader);
+UGL_STORE(glShaderSource);
+UGL_STORE(glCreateProgram);
+UGL_STORE(glAttachShader);
+UGL_STORE(glCompileShader);
+UGL_STORE(glLinkProgram);
+UGL_STORE(glGetUniformLocation);
+UGL_STORE(glGetAttribLocation);
+UGL_STORE(glEnableVertexAttribArray);
+UGL_STORE(glDisableVertexAttribArray);
+UGL_STORE(glVertexAttribPointer);
+UGL_STORE(glViewport);
+UGL_STORE(glClear);
+UGL_STORE(glUseProgram);
+UGL_STORE(glUniformMatrix4fv);
+UGL_STORE(glDrawArrays);
+
+#define UGL_LOAD(name) name = (UGL_HANDLE(name)) proc(#name)
+int uGlLoadGL(uGlLoadProc proc)
 {
     UGL_LOAD(glGenBuffers);
     UGL_LOAD(glBindBuffer);

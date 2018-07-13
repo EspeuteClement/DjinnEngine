@@ -1,6 +1,7 @@
 #ifndef _uGL_H_
 #define _uGL_H_
 
+
 #include <stdint.h>
 #include <stddef.h>
 
@@ -45,59 +46,64 @@ typedef float GLfloat;
 #define APIENTRY __stdcall
 #endif
 
+#if __TARGET_WEB__
+    #define GL_API *
+#else
+    #define GL_API APIENTRY *
+#endif
+
 // Opengl Functions declarations
 #define UGL_HANDLE(name) name ## _handle
-#define WIN_API_CALL APIENTRY *
-typedef void    (WIN_API_CALL UGL_HANDLE(  glGenBuffers        )) ( GLsizei n, GLuint *buffers);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glBindBuffer        )) ( GLenum target, GLuint buffer);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glBufferData        )) ( GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);
-typedef GLuint  (WIN_API_CALL UGL_HANDLE(  glCreateShader      )) ( GLenum shaderType);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glShaderSource      )) ( GLuint shader,GLsizei count,const GLchar **string, const GLint *length);
-typedef GLuint  (WIN_API_CALL UGL_HANDLE(  glCreateProgram     )) ( void);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glAttachShader      )) ( GLuint program, GLuint shader);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glCompileShader     )) ( GLuint shader);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glLinkProgram       )) ( GLuint program);
-typedef GLint   (WIN_API_CALL UGL_HANDLE(  glGetUniformLocation)) ( GLuint program, const GLchar *name);
-typedef GLint   (WIN_API_CALL UGL_HANDLE(  glGetAttribLocation )) ( GLuint program, const GLchar *name);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glEnableVertexAttribArray))( GLuint index);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glDisableVertexAttribArray))( GLuint index);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glVertexAttribPointer   )) ( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * pointer);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glViewport          )) ( GLint x, GLint y, GLsizei width, GLsizei height);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glClear             )) ( GLbitfield mask);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glUseProgram        )) ( GLuint program);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glUniformMatrix4fv  )) ( GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void    (WIN_API_CALL UGL_HANDLE(  glDrawArrays        )) ( GLenum mode, GLint first, GLsizei count);
+
+typedef void    (GL_API UGL_HANDLE(  glGenBuffers        )) ( GLsizei n, GLuint *buffers);
+typedef void    (GL_API UGL_HANDLE(  glBindBuffer        )) ( GLenum target, GLuint buffer);
+typedef void    (GL_API UGL_HANDLE(  glBufferData        )) ( GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);
+typedef GLuint  (GL_API UGL_HANDLE(  glCreateShader      )) ( GLenum shaderType);
+typedef void    (GL_API UGL_HANDLE(  glShaderSource      )) ( GLuint shader,GLsizei count,const GLchar **string, const GLint *length);
+typedef GLuint  (GL_API UGL_HANDLE(  glCreateProgram     )) ( void);
+typedef void    (GL_API UGL_HANDLE(  glAttachShader      )) ( GLuint program, GLuint shader);
+typedef void    (GL_API UGL_HANDLE(  glCompileShader     )) ( GLuint shader);
+typedef void    (GL_API UGL_HANDLE(  glLinkProgram       )) ( GLuint program);
+typedef GLint   (GL_API UGL_HANDLE(  glGetUniformLocation)) ( GLuint program, const GLchar *name);
+typedef GLint   (GL_API UGL_HANDLE(  glGetAttribLocation )) ( GLuint program, const GLchar *name);
+typedef void    (GL_API UGL_HANDLE(  glEnableVertexAttribArray))( GLuint index);
+typedef void    (GL_API UGL_HANDLE(  glDisableVertexAttribArray))( GLuint index);
+typedef void    (GL_API UGL_HANDLE(  glVertexAttribPointer   )) ( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * pointer);
+typedef void    (GL_API UGL_HANDLE(  glViewport          )) ( GLint x, GLint y, GLsizei width, GLsizei height);
+typedef void    (GL_API UGL_HANDLE(  glClear             )) ( GLbitfield mask);
+typedef void    (GL_API UGL_HANDLE(  glUseProgram        )) ( GLuint program);
+typedef void    (GL_API UGL_HANDLE(  glUniformMatrix4fv  )) ( GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+typedef void    (GL_API UGL_HANDLE(  glDrawArrays        )) ( GLenum mode, GLint first, GLsizei count);
 
 // Context (store it somewhere)
 
-#define UGL_STORE(name) UGL_HANDLE(name) name
-typedef struct
-{
-    UGL_STORE(glGenBuffers);
-    UGL_STORE(glBindBuffer);
-    UGL_STORE(glBufferData);
-    UGL_STORE(glCreateShader);
-    UGL_STORE(glShaderSource);
-    UGL_STORE(glCreateProgram);
-    UGL_STORE(glAttachShader);
-    UGL_STORE(glCompileShader);
-    UGL_STORE(glLinkProgram);
-    UGL_STORE(glGetUniformLocation);
-    UGL_STORE(glGetAttribLocation);
-    UGL_STORE(glEnableVertexAttribArray);
-    UGL_STORE(glDisableVertexAttribArray);
-    UGL_STORE(glVertexAttribPointer);
-    UGL_STORE(glViewport);
-    UGL_STORE(glClear);
-    UGL_STORE(glUseProgram);
-    UGL_STORE(glUniformMatrix4fv);
-    UGL_STORE(glDrawArrays);
+#define UGL_DECLARE(name) extern UGL_HANDLE(name) name
 
-} uglCtxt;
+UGL_DECLARE(glGenBuffers);
+UGL_DECLARE(glBindBuffer);
+UGL_DECLARE(glBufferData);
+UGL_DECLARE(glCreateShader);
+UGL_DECLARE(glShaderSource);
+UGL_DECLARE(glCreateProgram);
+UGL_DECLARE(glAttachShader);
+UGL_DECLARE(glCompileShader);
+UGL_DECLARE(glLinkProgram);
+UGL_DECLARE(glGetUniformLocation);
+UGL_DECLARE(glGetAttribLocation);
+UGL_DECLARE(glEnableVertexAttribArray);
+UGL_DECLARE(glDisableVertexAttribArray);
+UGL_DECLARE(glVertexAttribPointer);
+UGL_DECLARE(glViewport);
+UGL_DECLARE(glClear);
+UGL_DECLARE(glUseProgram);
+UGL_DECLARE(glUniformMatrix4fv);
+UGL_DECLARE(glDrawArrays);
+
+
 
 // Loader
 typedef void* (* uGlLoadProc)(const char *name);
-uGLAPI int uGlLoadGL(uGlLoadProc proc, uglCtxt* ctxt);
+uGLAPI int uGlLoadGL(uGlLoadProc proc);
 
 
 #ifdef __cplusplus

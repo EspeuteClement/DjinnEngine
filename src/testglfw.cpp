@@ -9,7 +9,6 @@
 
 #include <cstdio>
 
-
 struct game_code_data
 {
     void* lib_handle;
@@ -35,6 +34,12 @@ game_code_data LoadGameCode()
 
     game_code_data Result = {};
 
+#ifdef __STANDALONE__
+    Result.game_loop = &game_loop;
+    Result.game_init_graphic = &game_init_graphic;
+    Result.game_unload_graphic = &game_unload_graphic;
+    Result.lib_handle = (void*)1;
+#else
     // Parameters
     const char* funcname = "game_loop";
     const char* dll_temp_name = "game_temp.dll";
@@ -55,15 +60,17 @@ game_code_data LoadGameCode()
         Result.game_unload_graphic  = (game_unload_graphic_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_unload_graphic");
 
     }
-
+#endif
     return(Result);
 }
 
 void UnloadGameCode(game_code_data& data)
 {
+#ifndef __STANDALONE__
     FreeLibrary((HMODULE) data.lib_handle);
     data.lib_handle = 0;
     data.game_loop = 0;
+#endif
 }
 
 
@@ -85,7 +92,6 @@ int main(int argc, char* args[])
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
-    //gladLoadGLLoader((GLADloadproc) glfwGetProcAddress);
 
     Memory memory = {};
 
@@ -96,9 +102,7 @@ int main(int argc, char* args[])
         return(-1);
     }
 
-    //uGlLoadGL((uGlLoadProc)glfwGetProcAddress, &(memory.ctxt));
-
-    memory.proc = (uGlLoadProc) glfwGetProcAddress;
+    memory.proc = (void*)glfwGetProcAddress;
     code_data.game_init_graphic(&memory);
 
     /* Loop until the user closes the window */
@@ -113,6 +117,7 @@ int main(int argc, char* args[])
 
         djn::sleep(16);
 
+#ifndef __STANDALONE__
         FILETIME currentFileTime = Win32GetLastWirteTime("game.dll");
                 
         if (CompareFileTime(&currentFileTime, &code_data.lastWriteTime) > 0)
@@ -125,7 +130,7 @@ int main(int argc, char* args[])
 
             code_data.game_init_graphic(&memory);
         }
-
+#endif
 
 
         /* Swap front and back buffers */
