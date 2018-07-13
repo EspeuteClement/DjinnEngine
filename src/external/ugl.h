@@ -37,27 +37,32 @@ typedef float GLfloat;
 #define GL_FALSE 0
 #define GL_TRUE 1
 
+#define GL_COLOR_BUFFER_BIT 0x00004000
+#define GL_TRIANGLES 0x0004
+
+
 // Opengl Functions declarations
 #define UGL_HANDLE(name) name ## _handle
-typedef void    (* UGL_HANDLE(  glGenBuffers        )) ( GLsizei n, GLuint *buffers);
-typedef void    (* UGL_HANDLE(  glBindBuffer        )) ( GLenum target, GLuint buffer);
-typedef void    (* UGL_HANDLE(  glBufferData        )) ( GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);
-typedef GLuint  (* UGL_HANDLE(  glCreateShader      )) ( GLenum shaderType);
-typedef void    (* UGL_HANDLE(  glShaderSource      )) ( GLuint shader,GLsizei count,const GLchar **string, const GLint *length);
-typedef GLuint  (* UGL_HANDLE(  glCreateProgram     )) ( void);
-typedef void    (* UGL_HANDLE(  glAttachShader      )) ( GLuint program, GLuint shader);
-typedef void    (* UGL_HANDLE(  glCompileShader     )) ( GLuint shader);
-typedef void    (* UGL_HANDLE(  glLinkProgram       )) ( GLuint program);
-typedef GLint   (* UGL_HANDLE(  glGetUniformLocation)) ( GLuint program, const GLchar *name);
-typedef GLint   (* UGL_HANDLE(  glGetAttribLocation )) ( GLuint program, const GLchar *name);
-typedef void    (* UGL_HANDLE(  glEnableVertexAttribArray))( GLuint index);
-typedef void    (* UGL_HANDLE(  glDisableVertexAttribArray))( GLuint index);
-typedef void    (* UGL_HANDLE(  glVertexAttribPointer   )) ( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * pointer);
-typedef void    (* UGL_HANDLE(  glViewport          )) ( GLint x, GLint y, GLsizei width, GLsizei height);
-typedef void    (* UGL_HANDLE(  glClear             )) ( GLbitfield mask);
-typedef void    (* UGL_HANDLE(  glUseProgram        )) ( GLuint program);
-typedef void    (* UGL_HANDLE(  glUniformMatrix4fv  )) ( GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
-typedef void    (* UGL_HANDLE(  glDrawArrays        )) ( GLenum mode, GLint first, GLsizei count);
+#define WIN_API_CALL __stdcall *
+typedef void    (WIN_API_CALL UGL_HANDLE(  glGenBuffers        )) ( GLsizei n, GLuint *buffers);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glBindBuffer        )) ( GLenum target, GLuint buffer);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glBufferData        )) ( GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);
+typedef GLuint  (WIN_API_CALL UGL_HANDLE(  glCreateShader      )) ( GLenum shaderType);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glShaderSource      )) ( GLuint shader,GLsizei count,const GLchar **string, const GLint *length);
+typedef GLuint  (WIN_API_CALL UGL_HANDLE(  glCreateProgram     )) ( void);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glAttachShader      )) ( GLuint program, GLuint shader);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glCompileShader     )) ( GLuint shader);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glLinkProgram       )) ( GLuint program);
+typedef GLint   (WIN_API_CALL UGL_HANDLE(  glGetUniformLocation)) ( GLuint program, const GLchar *name);
+typedef GLint   (WIN_API_CALL UGL_HANDLE(  glGetAttribLocation )) ( GLuint program, const GLchar *name);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glEnableVertexAttribArray))( GLuint index);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glDisableVertexAttribArray))( GLuint index);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glVertexAttribPointer   )) ( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * pointer);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glViewport          )) ( GLint x, GLint y, GLsizei width, GLsizei height);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glClear             )) ( GLbitfield mask);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glUseProgram        )) ( GLuint program);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glUniformMatrix4fv  )) ( GLint location, GLsizei count, GLboolean transpose, const GLfloat *value);
+typedef void    (WIN_API_CALL UGL_HANDLE(  glDrawArrays        )) ( GLenum mode, GLint first, GLsizei count);
 
 // Context (store it somewhere)
 
@@ -83,6 +88,7 @@ typedef struct
     UGL_STORE(glUseProgram);
     UGL_STORE(glUniformMatrix4fv);
     UGL_STORE(glDrawArrays);
+
 } uglCtxt;
 
 // Loader
