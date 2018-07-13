@@ -12,6 +12,7 @@ IF NOT EXIST %~dp0build mkdir %~dp0build
 pushd %~dp0build
 del /Q *.pdb > NUL 2> NUL
 cl  %FLAGS% ../src/game.cpp -I../src/external/include ../src/external/ugl.c /DLL /LD /nologo /link /INCREMENTAL:NO /PDB:game.%random%.pdb
+echo === Finished building game.dll at %time%
 cl  %FLAGS%  /D_GLFW_WIN32 ../src/testglfw.cpp ../src/external/ugl.c ../src/external/external.all.c %LIBS% -I../src/external/include  /nologo /link /INCREMENTAL:NO /PDB:testglfw.%random%.pdb
 echo %time%
 popd

@@ -84,7 +84,7 @@ GAME_LOOP(game_loop)
     memory->ctxt.glDrawArrays(GL_TRIANGLES, 0, 3);
 
 
-    printf("%5d : Sup ! !\n", memory->x);
+    printf("%5d : FUCK THE RULES ! !\n", memory->x);
     memory->x ++ ;
 }
 

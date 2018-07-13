@@ -41,9 +41,13 @@ typedef float GLfloat;
 #define GL_TRIANGLES 0x0004
 
 
+#ifndef APIENTRY
+#define APIENTRY __stdcall
+#endif
+
 // Opengl Functions declarations
 #define UGL_HANDLE(name) name ## _handle
-#define WIN_API_CALL __stdcall *
+#define WIN_API_CALL APIENTRY *
 typedef void    (WIN_API_CALL UGL_HANDLE(  glGenBuffers        )) ( GLsizei n, GLuint *buffers);
 typedef void    (WIN_API_CALL UGL_HANDLE(  glBindBuffer        )) ( GLenum target, GLuint buffer);
 typedef void    (WIN_API_CALL UGL_HANDLE(  glBufferData        )) ( GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage);
