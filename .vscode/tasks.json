@@ -15,7 +15,7 @@
                 "echo": true,
                 "reveal": "always",
                 "focus": false,
-                "panel": "shared"
+                "panel": "dedicated"
             },
             "problemMatcher":
             {

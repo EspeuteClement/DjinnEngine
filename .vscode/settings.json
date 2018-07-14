@@ -4,6 +4,7 @@
         "cstdio": "cpp",
         "internal.h": "c",
         "win32_platform.h": "c",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "ugl.h": "c"
     }
 }

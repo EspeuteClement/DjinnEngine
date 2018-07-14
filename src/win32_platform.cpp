@@ -1,17 +1,21 @@
-#define SDL_MAIN_HANDLED
-#include "include/sdl2/SDL.h"
-#include <cstdio>
-
-#include "game.h"
 #include "windows.h"
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#include "external/include/GLFW/glfw3.h"
+
+#include "utils/utils.h"
+#include "utils/utils.cpp"
+
+#include "game.h"
+
+#include <cstdio>
 
 struct game_code_data
 {
     void* lib_handle;
-    game_loop_handle* game_loop;
+    game_loop_handle*           game_loop;
+    game_init_graphic_handle*   game_init_graphic;
+    game_unload_graphic_handle* game_unload_graphic;
+
     FILETIME lastWriteTime = {};
 };
 
@@ -28,84 +32,123 @@ FILETIME Win32GetLastWirteTime(const char* filename)
 game_code_data LoadGameCode()
 {
 
-
     game_code_data Result = {};
 
-
-
+#ifdef __STANDALONE__
+    Result.game_loop = &game_loop;
+    Result.game_init_graphic = &game_init_graphic;
+    Result.game_unload_graphic = &game_unload_graphic;
+    Result.lib_handle = (void*)1;
+#else
     // Parameters
     const char* funcname = "game_loop";
     const char* dll_temp_name = "game_temp.dll";
     const char* dll_name = "game.dll";
 
     Result.lastWriteTime = Win32GetLastWirteTime(dll_name);
-    CopyFileA(dll_name, dll_temp_name, false);
-    Result.lib_handle = SDL_LoadObject(dll_temp_name);
+	if (!CopyFileA(dll_name, dll_temp_name, false))
+	{
+		printf("=== Couldn't copy file ! ===\n");
+	}
+    Result.lib_handle = LoadLibraryA(dll_temp_name);
     
     if (Result.lib_handle)
     {
-        printf("=== DLL reloaded ===\n");
-        Result.game_loop = (game_loop_handle*)SDL_LoadFunction(Result.lib_handle, funcname);
-    }
+		printf("=== Game DLL Loaded ! ===\n");
+        Result.game_loop            = (game_loop_handle*)GetProcAddress((HMODULE) Result.lib_handle, funcname);
+        Result.game_init_graphic    = (game_init_graphic_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_init_graphic");
+        Result.game_unload_graphic  = (game_unload_graphic_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_unload_graphic");
 
+    }
+#endif
     return(Result);
 }
 
 void UnloadGameCode(game_code_data& data)
 {
-    SDL_UnloadObject(data.lib_handle);
+#ifndef __STANDALONE__
+    FreeLibrary((HMODULE) data.lib_handle);
     data.lib_handle = 0;
     data.game_loop = 0;
+#endif
 }
+
 
 int main(int argc, char* args[])
 {
+    GLFWwindow* window;
+
+    /* Initialize the library */
+    if (!glfwInit())
+        return -1;
+
+    /* Create a windowed mode window and its OpenGL context */
+    window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+    if (!window)
+    {
+        glfwTerminate();
+        return -1;
+    }
+
+    /* Make the window's context current */
+    glfwMakeContextCurrent(window);
+
     Memory memory = {};
-
-    memory.window = NULL;
-
-    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-        fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
-        return 1;
-    }
-    memory.window = SDL_CreateWindow(
-                    "hello_sdl2",
-                    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                    SCREEN_WIDTH, SCREEN_HEIGHT,
-                    SDL_WINDOW_SHOWN
-                    );
-    if (memory.window == NULL) {
-        fprintf(stderr, "could not create window: %s\n", SDL_GetError());
-        return 1;
-    }
-
-
 
     game_code_data code_data = LoadGameCode();
 
-    if (code_data.game_loop)
+    if (!code_data.game_loop)
     {
-        while(1)
+        return(-1);
+    }
+
+    memory.proc = (void*)glfwGetProcAddress;
+    code_data.game_init_graphic(&memory);
+
+    glfwSwapInterval(1);
+    /* Loop until the user closes the window */
+    while (!glfwWindowShouldClose(window))
+    {
+        glfwGetFramebufferSize(window, &memory.screen_width, &memory.screen_height);
+
+        /* Render here */
+        //glClear(GL_COLOR_BUFFER_BIT);
+
+        code_data.game_loop(&memory);
+
+        //djn::sleep(16);
+
+#ifndef __STANDALONE__
+        FILETIME currentFileTime = Win32GetLastWirteTime("game.dll");
+                
+        if (CompareFileTime(&currentFileTime, &code_data.lastWriteTime) > 0)
         {
-            code_data.game_loop(&memory);
-            SDL_Delay(20);
-            FILETIME currentFileTime = Win32GetLastWirteTime("game.dll");
-            if (CompareFileTime(&currentFileTime, &code_data.lastWriteTime) > 0)
-            {
-                UnloadGameCode(code_data);
-                code_data = LoadGameCode();
-                code_data.lastWriteTime = currentFileTime;
-            }
+            code_data.game_unload_graphic(&memory);
 
+            UnloadGameCode(code_data);
+            code_data = LoadGameCode();
+            code_data.lastWriteTime = currentFileTime;
+
+            code_data.game_init_graphic(&memory);
         }
+#endif
 
-    }
-    else
-    {
-        printf("Couldn't load library zerjhzdjkfsdf: %s\n", SDL_GetError());
+
+        /* Swap front and back buffers */
+        glfwSwapBuffers(window);
+
+        /* Poll for and process events */
+        glfwPollEvents();
     }
 
-    SDL_DestroyWindow(memory.window);
-        SDL_Quit();
-    return(0);
+    glfwTerminate();
+    return 0;
 }
+
+
+///
+
+
+
+
+
