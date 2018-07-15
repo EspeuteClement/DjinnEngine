@@ -63,7 +63,7 @@ GLuint vertex_shader, fragment_shader, program;
 GLuint tex;
 GLint mvp_location;
 
-#define FACTOR 80000
+#define FACTOR 4000
 #define MAX_VERTEX FACTOR*7
 struct
 {
@@ -186,7 +186,7 @@ void graph_draw_all(Memory* memory)
             vertex_data.count = 0;
             for (uint32_t i = 0; i < FACTOR; i++)
             {
-                push_quad(rand()%512,rand()%256,   16,16,      (rand()%16)*16,(rand()%16)*16,      16,16);
+                push_quad((i%64) * 16,(i/64) * 16,   16,16,      ((i*871+(i/64)*147)%16)*16,((i*0x777121+(i/16)*789)%16)*16,      16,16);
             }
         }
 
@@ -205,8 +205,9 @@ void graph_draw_all(Memory* memory)
     glViewport(0, 0, memory->screen_width, memory->screen_height);
     glClear(GL_COLOR_BUFFER_BIT);
     mat4x4_identity(m);
-    //mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
-    //mat4x4_rotate_Z(m, m, (float) memory->x/50);
+    mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
+    mat4x4_rotate_Z(m, m, (float) memory->x/50);
+    mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
 
 
     mat4x4_ortho(p, 0, memory->screen_width, memory->screen_height, 0, 0, 1.f);

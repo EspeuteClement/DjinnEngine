@@ -109,7 +109,7 @@ int main(int argc, char* args[])
 
     
     int frame_acc = 0;
-    glfwSwapInterval(0);
+    glfwSwapInterval(1);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
