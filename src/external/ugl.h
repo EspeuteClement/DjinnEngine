@@ -31,7 +31,10 @@ typedef float GLfloat;
 // Opengl Constants
 
 #define GL_ARRAY_BUFFER 0x8892
+
+#define GL_STREAM_DRAW 0x88E0
 #define GL_STATIC_DRAW 0x88E4
+
 #define GL_VERTEX_SHADER 0x8B31
 #define GL_FRAGMENT_SHADER 0x8B30
 #define GL_FLOAT 0x1406
@@ -57,6 +60,9 @@ typedef float GLfloat;
 
 #define GL_RGBA                           0x1908
 #define GL_UNSIGNED_BYTE 0x1401
+
+#define GL_MULTISAMPLE 0x809D
+
 
 
 #ifndef APIENTRY
@@ -98,7 +104,10 @@ typedef void    (GL_API UGL_HANDLE( glGenTextures               ))  (GLsizei n, 
 typedef void    (GL_API UGL_HANDLE( glBindTexture               ))  (GLenum target,  GLuint texture);
 typedef void    (GL_API UGL_HANDLE( glTexParameteri             ))  (GLenum target,  GLenum pname,  GLint param);
 typedef void    (GL_API UGL_HANDLE( glTexImage2D                ))  (GLenum target,  GLint level,  GLint internalformat,  GLsizei width,  GLsizei height,  GLint border,  GLenum format,  GLenum type,  const GLvoid * data);
+typedef void    (GL_API UGL_HANDLE( glEnable                    ))  (GLenum  cap);
+typedef void    (GL_API UGL_HANDLE( glDisable                    )) (GLenum  cap);
 
+// Used to get all the functions using various macros
 #define UGL_FUNCTIONS(OP) \
         OP(glGenBuffers                 )\
         OP(glBindBuffer                 )\
@@ -126,6 +135,8 @@ typedef void    (GL_API UGL_HANDLE( glTexImage2D                ))  (GLenum targ
         OP(glBindTexture                )\
         OP(glTexParameteri              )\
         OP(glTexImage2D                 )\
+        OP(glEnable                     )\
+        OP(glDisable                    )\
 
 
 // Context (store it somewhere)

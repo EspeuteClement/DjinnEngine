@@ -5,6 +5,7 @@
 namespace djn
 {
     void sleep(uint32_t time_as_ms);
+    uint64_t get_time_micro();
 };
 
 #endif

@@ -81,7 +81,7 @@ int main(int argc, char* args[])
     /* Initialize the library */
     if (!glfwInit())
         return -1;
-
+    
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
     if (!window)
@@ -89,6 +89,8 @@ int main(int argc, char* args[])
         glfwTerminate();
         return -1;
     }
+
+        glfwWindowHint(GLFW_SAMPLES, 0);
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
@@ -105,18 +107,21 @@ int main(int argc, char* args[])
     memory.proc = (void*)glfwGetProcAddress;
     code_data.game_init_graphic(&memory);
 
-    glfwSwapInterval(1);
+    
+    int frame_acc = 0;
+    glfwSwapInterval(0);
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+        frame_acc ++;
+
         glfwGetFramebufferSize(window, &memory.screen_width, &memory.screen_height);
 
         /* Render here */
         //glClear(GL_COLOR_BUFFER_BIT);
-
+        uint64_t start_time = djn::get_time_micro();        
         code_data.game_loop(&memory);
 
-        //djn::sleep(16);
 
 #ifndef __STANDALONE__
         FILETIME currentFileTime = Win32GetLastWirteTime("game.dll");
@@ -136,6 +141,15 @@ int main(int argc, char* args[])
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
+
+        uint64_t end_time = djn::get_time_micro();
+
+        if (frame_acc >= 5)
+        {
+            printf("Frame_time = %d\n" , (uint32_t) (end_time - start_time));
+            frame_acc = 0;
+        }
+        
 
         /* Poll for and process events */
         glfwPollEvents();
