@@ -91,6 +91,9 @@ GAME_LOOP(game_loop)
 
 GAME_UNLOAD_GRAPHIC(game_unload_graphic)
 {
+    ImGui_ImplOpenGL3_Shutdown();
+    
+    ImGui::DestroyContext();
     //stbi_image_free(test_image);
     // Do nothing at the moment
 }
