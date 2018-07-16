@@ -6,6 +6,16 @@ typedef float   r32;
 typedef double  r64;
 
 
+struct Input
+{
+    r32 mouse_x;
+    r32 mouse_y;
+    int mouse_btn[5];
+
+    float mouse_sx;
+    float mouse_sy;
+};
+
 struct Memory
 {
     s32 x;
@@ -13,7 +23,9 @@ struct Memory
     
     s32 screen_width;
     s32 screen_height;
-    
+
+    Input input;
+
     void* proc;
 };
 

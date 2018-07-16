@@ -13,6 +13,8 @@
 // The 'glsl_version' initialization parameter defaults to "#version 130" if NULL.
 // Only override if your GL version doesn't handle this GLSL version (see table at the top of imgui_impl_opengl3.cpp). Keep NULL if unsure!
 
+#pragma once
+
 IMGUI_IMPL_API bool     ImGui_ImplOpenGL3_Init(const char* glsl_version = NULL);
 IMGUI_IMPL_API void     ImGui_ImplOpenGL3_Shutdown();
 IMGUI_IMPL_API void     ImGui_ImplOpenGL3_NewFrame();

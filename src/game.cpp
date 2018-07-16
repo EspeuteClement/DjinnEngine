@@ -2,6 +2,9 @@
 #include <cstdio>
 
 #include "graph.cpp"
+#include "external/imgui/imgui.h"
+#include "external/imgui/imgui_impl_djinn.h"
+
 static const struct
 {
     float x, y;
@@ -39,16 +42,51 @@ static const struct
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
     graph_init(memory);
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+
+    ImGui_ImplOpenGL3_Init("#version 100");
+    ImGui::StyleColorsDark();
 }
 
+bool show_another_window = true;
+
+#include "external/imgui/imgui_demo.cpp"
 
 GAME_LOOP(game_loop)
 {
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.DisplaySize.x = memory->screen_width;
+    io.DisplaySize.y = memory->screen_height;
+
+    io.MousePos.x = memory->input.mouse_x;
+    io.MousePos.y = memory->input.mouse_y;
+
+    io.MouseWheel = memory->input.mouse_sy;
+    io.MouseWheelH = memory->input.mouse_sx;
+
+    for (int i = 0; i < 5; i++)
+    {
+        io.MouseDown[i] =  memory->input.mouse_btn[i];
+    } 
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui::NewFrame();
+
     graph_draw_all(memory);
 
 
     //printf("%5d : FUCK THE RULES ! !\n", memory->screen_width);
     memory->x ++ ;
+
+    if (show_another_window)
+    {
+        ImGui::ShowDemoWindow(&show_another_window);
+    }
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 }
 
 GAME_UNLOAD_GRAPHIC(game_unload_graphic)

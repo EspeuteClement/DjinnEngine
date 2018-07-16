@@ -73,6 +73,14 @@ void UnloadGameCode(game_code_data& data)
 #endif
 }
 
+Memory* memory_ptr;
+
+void ScrollFunc(GLFWwindow* window,double xoffset,double yoffset)
+{
+    memory_ptr->input.mouse_sx = (float)xoffset;
+    memory_ptr->input.mouse_sy = (float)yoffset; 
+}
+
 
 int main(int argc, char* args[])
 {
@@ -96,8 +104,15 @@ int main(int argc, char* args[])
     glfwMakeContextCurrent(window);
 
     Memory memory = {};
+    memory_ptr = &memory;
 
     game_code_data code_data = LoadGameCode();
+
+    {
+        // Input callbacks
+        glfwSetScrollCallback(window, &ScrollFunc);
+    }
+    
 
     if (!code_data.game_loop)
     {
@@ -114,6 +129,23 @@ int main(int argc, char* args[])
     while (!glfwWindowShouldClose(window))
     {
         frame_acc ++;
+
+        // Update inputs :
+        {
+            if (glfwGetWindowAttrib(window, GLFW_FOCUSED))
+            {
+                double x, y;
+                glfwGetCursorPos(window, &x, &y);
+                memory.input.mouse_x = x;
+                memory.input.mouse_y = y;
+
+                for (int i = 0; i < 5; i++)
+                {
+                    memory.input.mouse_btn[i] = glfwGetMouseButton(window, i);
+                } 
+            }
+            
+        }
 
         glfwGetFramebufferSize(window, &memory.screen_width, &memory.screen_height);
 
@@ -151,6 +183,7 @@ int main(int argc, char* args[])
         }
         
 
+        memset(&memory.input, 0, sizeof(memory.input));
         /* Poll for and process events */
         glfwPollEvents();
     }

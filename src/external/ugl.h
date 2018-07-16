@@ -189,8 +189,13 @@ typedef void        (GL_API UGL_HANDLE( glDrawElements              )) ( 	GLenum
 typedef void        (GL_API UGL_HANDLE( glDeleteVertexArrays        )) (GLsizei n, const GLuint *arrays);
 typedef void        (GL_API UGL_HANDLE( glBlendEquationSeparate     )) (GLenum modeRGB, GLenum modeAlpha);
 typedef void        (GL_API UGL_HANDLE( glBlendFuncSeparate         )) (GLenum srcRGB,  GLenum dstRGB,  GLenum srcAlpha,  GLenum dstAlpha);
-typedef void        (GL_API UGL_HANDLE( glPixelStorei                )) (GLenum pname,  GLint param);
-typedef void        (GL_API UGL_HANDLE( glDeleteTextures             )) (GLsizei n,  const GLuint * textures);
+typedef void        (GL_API UGL_HANDLE( glPixelStorei               )) (GLenum pname,  GLint param);
+typedef void        (GL_API UGL_HANDLE( glDeleteTextures            )) (GLsizei n,  const GLuint * textures);
+typedef void        (GL_API UGL_HANDLE( glGetProgramiv              )) (GLuint program,  GLenum pname,  GLint *params);
+typedef void        (GL_API UGL_HANDLE( glGetProgramInfoLog         )) (GLuint program,  GLsizei maxLength,  GLsizei *length,  GLchar *infoLog);
+typedef void        (GL_API UGL_HANDLE( glDeleteProgram             )) ( GLuint program);
+typedef void        (GL_API UGL_HANDLE( glDetachShader              )) ( GLuint program, GLuint shader);
+typedef void        (GL_API UGL_HANDLE( glDeleteBuffers             )) ( GLsizei n, const GLuint * buffers);
 
 // Used to get all the functions using various macros
 #define UGL_FUNCTIONS(OP) \
@@ -239,6 +244,11 @@ typedef void        (GL_API UGL_HANDLE( glDeleteTextures             )) (GLsizei
         OP(glBlendFuncSeparate          )\
         OP(glPixelStorei                )\
         OP(glDeleteTextures             )\
+        OP(glGetProgramiv               )\
+        OP(glGetProgramInfoLog          )\
+        OP(glDeleteProgram              )\
+        OP(glDetachShader               )\
+        OP(glDeleteBuffers              )\
 
 
 // Context (store it somewhere)
