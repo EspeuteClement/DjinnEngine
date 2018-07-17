@@ -13,15 +13,24 @@ namespace djn
     {
         const uint64_t TICKS_PER_SECOND = 10000000;
 
-        FILETIME ft;
-        GetSystemTimeAsFileTime(&ft);
+        static LARGE_INTEGER freq;
+        if (freq.QuadPart == 0)
+            QueryPerformanceFrequency(&freq);
+        
+        // FILETIME ft;
+        // GetSystemTimeAsFileTime(&ft);
 
-        uint64_t us = ft.dwHighDateTime; 
-        us <<= 32;
-        us |= ft.dwLowDateTime;
+        // uint64_t us = ft.dwHighDateTime; 
+        // us <<= 32;
+        // us |= ft.dwLowDateTime;
 
-        us /= 10;
+        // us /= 10;
 
-        return us;
+        LARGE_INTEGER li;
+        QueryPerformanceCounter(&li);
+
+
+
+        return li.QuadPart/(freq.QuadPart/1000000.0);
     }
 };

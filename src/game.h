@@ -18,6 +18,19 @@ struct Input
     float mouse_sy;
 };
 
+#define DEBUG_FRAMES_COUNT 60
+struct Debug
+{
+    r32 lastFrameTimesMs[DEBUG_FRAMES_COUNT];
+    int currentTimeFrame;
+};
+
+inline void AddDebugFrame(Debug *debug, r32 lastTime)
+{
+    debug->lastFrameTimesMs[debug->currentTimeFrame] = lastTime;
+    debug->currentTimeFrame = (debug->currentTimeFrame + 1) % DEBUG_FRAMES_COUNT;
+}
+
 struct Memory
 {
     s32 x;
@@ -30,7 +43,11 @@ struct Memory
     void (*OnCharInputCallback) (u32 inputChar);
 
     void* proc;
+
+    Debug debug;
 };
+
+
 
 #ifdef __STANDALONE__
     #define GAME_API extern

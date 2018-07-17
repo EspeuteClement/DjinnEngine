@@ -135,6 +135,7 @@ int main(int argc, char* args[])
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
+        uint64_t start_time = djn::get_time_micro(); 
         frame_acc ++;
 
         // Update inputs :
@@ -158,7 +159,7 @@ int main(int argc, char* args[])
 
         /* Render here */
         //glClear(GL_COLOR_BUFFER_BIT);
-        uint64_t start_time = djn::get_time_micro();        
+       
         code_data.game_loop(&memory);
 
 
@@ -181,18 +182,23 @@ int main(int argc, char* args[])
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
 
-        uint64_t end_time = djn::get_time_micro();
 
-        if (frame_acc >= 5)
-        {
-            printf("Frame_time = %d\n" , (uint32_t) (end_time - start_time));
-            frame_acc = 0;
-        }
+
+        AddDebugFrame(&memory.debug, (end_time - start_time)/1000.0f);
         
 
         memset(&memory.input, 0, sizeof(memory.input));
         /* Poll for and process events */
         glfwPollEvents();
+
+        uint64_t end_time = djn::get_time_micro();
+
+        if (frame_acc >= 0)
+        {
+            //if ((end_time - start_time) > 20000)
+                printf("Frame_time = %d\n" , (uint32_t) (end_time - start_time));
+            frame_acc = 0;
+        }
     }
 
     glfwTerminate();

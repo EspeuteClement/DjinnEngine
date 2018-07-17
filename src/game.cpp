@@ -85,6 +85,15 @@ GAME_LOOP(game_loop)
     //printf("%5d : FUCK THE RULES ! !\n", memory->screen_width);
     memory->x ++ ;
 
+    ImGui::BeginMainMenuBar();
+        //ImGui::Text("%f05.3", memory->debug.lastFrameTimesMs[0]);
+        if(ImGui::BeginMenu("Test"))
+        {
+            ImGui::PlotLines("FrameGraph", memory->debug.lastFrameTimesMs, DEBUG_FRAMES_COUNT, memory->debug.currentTimeFrame, 0, 0.0f, 100.0f, ImVec2(300,300));
+            ImGui::EndMenu();
+        }
+    ImGui::EndMainMenuBar();
+
     if (show_another_window)
     {
         ImGui::ShowDemoWindow(&show_another_window);
