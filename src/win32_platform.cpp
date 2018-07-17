@@ -81,6 +81,12 @@ void ScrollFunc(GLFWwindow* window,double xoffset,double yoffset)
     memory_ptr->input.mouse_sy = (float)yoffset; 
 }
 
+void CharFunc(GLFWwindow* window, unsigned int c)
+{
+    if (memory_ptr->OnCharInputCallback)
+        memory_ptr->OnCharInputCallback(c);
+}
+
 
 int main(int argc, char* args[])
 {
@@ -111,6 +117,7 @@ int main(int argc, char* args[])
     {
         // Input callbacks
         glfwSetScrollCallback(window, &ScrollFunc);
+        glfwSetCharCallback(window, &CharFunc);
     }
     
 

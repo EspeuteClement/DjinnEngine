@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 typedef int32_t s32;
+typedef uint32_t u32;
+typedef uint64_t u64;
 typedef int64_t s64;
 typedef float   r32;
 typedef double  r64;
@@ -25,6 +27,7 @@ struct Memory
     s32 screen_height;
 
     Input input;
+    void (*OnCharInputCallback) (u32 inputChar);
 
     void* proc;
 };

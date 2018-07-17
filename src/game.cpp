@@ -32,7 +32,11 @@ static const struct
 };
 
 
-
+void OnCharInputCallback(u32 c)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.AddInputCharacter(c);
+}
 
 
 
@@ -42,6 +46,7 @@ static const struct
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
     graph_init(memory);
+    memory->OnCharInputCallback = &OnCharInputCallback;
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
@@ -64,6 +69,7 @@ GAME_LOOP(game_loop)
 
     io.MouseWheel = memory->input.mouse_sy;
     io.MouseWheelH = memory->input.mouse_sx;
+
 
     for (int i = 0; i < 5; i++)
     {
