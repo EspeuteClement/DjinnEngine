@@ -39,14 +39,33 @@ void OnCharInputCallback(u32 c)
 }
 
 
+void OnKeyCallback (int key, int action, int mods)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    if (action == 1) // press
+        io.KeysDown[key] = true;
+    if (action == 0)
+        io.KeysDown[key] = false;
 
+    io.KeyCtrl = io.KeysDown[341] || io.KeysDown[345];
+    io.KeyShift = io.KeysDown[340] || io.KeysDown[344];
+    io.KeyAlt = io.KeysDown[342] || io.KeysDown[346];
+    io.KeySuper = io.KeysDown[343] || io.KeysDown[347];
+}   
 
+void SetCallbacks(Memory* memory)
+{
+    memory->OnCharInputCallback = &OnCharInputCallback;
+    memory->OnKeyCallback = &OnKeyCallback;
+}
 
 
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
     graph_init(memory);
-    memory->OnCharInputCallback = &OnCharInputCallback;
+    
+    SetCallbacks(memory);
+    
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
@@ -96,7 +115,7 @@ GAME_LOOP(game_loop)
 
     if (show_another_window)
     {
-        ImGui::ShowDemoWindow(&show_another_window);
+    ImGui::ShowDemoWindow(&show_another_window);
     }
 
     ImGui::Render();

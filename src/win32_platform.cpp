@@ -87,6 +87,12 @@ void CharFunc(GLFWwindow* window, unsigned int c)
         memory_ptr->OnCharInputCallback(c);
 }
 
+void KeyFunc(GLFWwindow*, int key, int, int action, int mods)
+{
+    if (memory_ptr->OnKeyCallback)
+        memory_ptr->OnKeyCallback(key, action, mods);
+}
+
 
 int main(int argc, char* args[])
 {
@@ -118,6 +124,7 @@ int main(int argc, char* args[])
         // Input callbacks
         glfwSetScrollCallback(window, &ScrollFunc);
         glfwSetCharCallback(window, &CharFunc);
+        glfwSetKeyCallback(window, &KeyFunc);
     }
     
 
@@ -184,7 +191,6 @@ int main(int argc, char* args[])
 
 
 
-        AddDebugFrame(&memory.debug, (end_time - start_time)/1000.0f);
         
 
         memset(&memory.input, 0, sizeof(memory.input));
@@ -192,6 +198,8 @@ int main(int argc, char* args[])
         glfwPollEvents();
 
         uint64_t end_time = djn::get_time_micro();
+        
+        AddDebugFrame(&memory.debug, (end_time - start_time)/1000.0f);
 
         if (frame_acc >= 0)
         {

@@ -77,6 +77,35 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     if (glsl_version == NULL)
         glsl_version = "#version 130";
     IM_ASSERT((int)strlen(glsl_version) + 2 < IM_ARRAYSIZE(g_GlslVersionString));
+
+        ImGuiIO& io = ImGui::GetIO();
+    //io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;         // We can honor GetMouseCursor() values (optional)
+    //io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;          // We can honor io.WantSetMousePos requests (optional, rarely used)
+
+    // Keyboard mapping. ImGui will use those indices to peek into the io.KeysDown[] array.
+    io.KeyMap[ImGuiKey_Tab] = 258;
+    io.KeyMap[ImGuiKey_LeftArrow] = 263;
+    io.KeyMap[ImGuiKey_RightArrow] = 262;
+    io.KeyMap[ImGuiKey_UpArrow] = 265;
+    io.KeyMap[ImGuiKey_DownArrow] = 264;
+    io.KeyMap[ImGuiKey_PageUp] = 266;
+    io.KeyMap[ImGuiKey_PageDown] = 267;
+    io.KeyMap[ImGuiKey_Home] = 268;
+    io.KeyMap[ImGuiKey_End] = 269;
+    io.KeyMap[ImGuiKey_Insert] = 260;
+    io.KeyMap[ImGuiKey_Delete] = 261;
+    io.KeyMap[ImGuiKey_Backspace] = 259;
+    io.KeyMap[ImGuiKey_Space] = 32;
+    io.KeyMap[ImGuiKey_Enter] = 257;
+    io.KeyMap[ImGuiKey_Escape] = 256;
+    io.KeyMap[ImGuiKey_A] = 65;
+    io.KeyMap[ImGuiKey_C] = 67;
+    io.KeyMap[ImGuiKey_V] = 86;
+    io.KeyMap[ImGuiKey_X] = 88;
+    io.KeyMap[ImGuiKey_Y] = 89;
+    io.KeyMap[ImGuiKey_Z] = 90;
+
+
     strcpy(g_GlslVersionString, glsl_version);
     strcat(g_GlslVersionString, "\n");
     return true;

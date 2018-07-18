@@ -40,7 +40,10 @@ struct Memory
     s32 screen_height;
 
     Input input;
+
+    // These function are ment to be called from the main application when the envents are encountered
     void (*OnCharInputCallback) (u32 inputChar);
+    void (*OnKeyCallback) (int key, int action, int mods);
 
     void* proc;
 
