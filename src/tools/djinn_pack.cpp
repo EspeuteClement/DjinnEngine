@@ -1,5 +1,8 @@
 // Packs a bunch of images from a folder 
 
+#include "djinn_pack_api.h"
+#include "djinn_pack_api.cpp"
+
 #include <windows.h>
 #include <cstdint>
 #include <cstring>
@@ -14,15 +17,10 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../external/stb_image_write.h"
 
-struct quad
-{
-    int u1, v1, u2, v2;
-};
-
 struct Img
 {
     char name[64 + 1];
-    quad q;
+    pack_quad q;
     int w,h;
     unsigned char * data;
 };
@@ -33,9 +31,10 @@ struct Img
 
 
 #define PIXEL_SIZE 4
+// Copy in to out at the given position, cropping using the given pack_quad
 void cpy_image( const unsigned char* in, 
                 int in_w,
-                const quad& q,
+                const pack_quad& q,
                 unsigned char * out, 
                 int out_x, 
                 int out_y,
@@ -59,7 +58,7 @@ void cpy_image( const unsigned char* in,
 
 }
 
-void find_quad(unsigned char* in_data, quad& q, int w, int h)
+void find_quad(unsigned char* in_data, pack_quad& q, int w, int h)
 {
     #define COORD(_x,_y) ((((_y) * w) + (_x)) * PIXEL_SIZE)
     bool found_v1 = false;
@@ -76,7 +75,6 @@ void find_quad(unsigned char* in_data, quad& q, int w, int h)
                 if (in_data[COORD(x,y) + 3] > 0)
                 {
                     q.v1 = y;
-                    
                     found_v1 = true;
                 }
             }
@@ -141,20 +139,27 @@ int main(int argc, char * argv)
     uint32_t imgs_index = 0;
     memset(imgs, 0, sizeof(Img));
 
-    stbrp_rect imgs_rects[IMG_MAX];
+    char out_path[256];
+    char out_data[256];
 
+    sprintf(out_path, "../test.png");
+    sprintf(out_data,"../test.dat");
+
+    FILE* out_data_file = fopen(out_data, "w");
+
+    stbrp_rect imgs_rects[IMG_MAX];
 
     char buff[256];
     sprintf(buff, "*.png", "data");
 
-    //printf("Searching files %s ... \n\n", buff);
+    printf("Searching files %s ... \n", buff);
     WIN32_FIND_DATAA fileFindData;
     HANDLE hndl = INVALID_HANDLE_VALUE;
     hndl = FindFirstFileA(buff, &fileFindData);
 
     if (hndl == INVALID_HANDLE_VALUE )
     {
-        //printf("Couldn't init file search", fileFindData.cFileName);
+        printf("Couldn't init file search", fileFindData.cFileName);
         return -1;
     }
 
@@ -183,7 +188,7 @@ int main(int argc, char * argv)
             
             if (img->data)
             {
-                
+                printf(".");
                 rect->id = imgs_index;
 
                 img->q.u1 = 0;
@@ -193,7 +198,7 @@ int main(int argc, char * argv)
 
                 find_quad(img->data, img->q, img->w, img->h);
 
-                //printf("    %s %dx%d --- quad %d %d %d %d\n", img->name, img->w, img->h, img->q.u1, img->q.v1, img->q.u2, img->q.v2);
+                //printf("    %s %dx%d --- pack_quad %d %d %d %d\n", img->name, img->w, img->h, img->q.u1, img->q.v1, img->q.u2, img->q.v2);
                 imgs_index ++;
 
                 rect->w = img->q.u2 - img->q.u1 + 2 * pad;
@@ -208,8 +213,10 @@ int main(int argc, char * argv)
     }
     while(FindNextFileA(hndl, &fileFindData) != 0 && imgs_index < IMG_MAX);
 
-    //printf("\n\n");
+    fprintf(out_data_file, "%d\n", imgs_index);
 
+    printf("\nDone, found %d files !", imgs_index);
+    printf("\nStart Packing !\n");
     stbrp_node nodes[NODE_COUNT];
     stbrp_context ctxt;
 
@@ -219,7 +226,15 @@ int main(int argc, char * argv)
 
     stbrp_pack_rects(&ctxt, imgs_rects, imgs_index);
 
-    //printf("Pack done : \n");
+    printf("Pack done\n");
+
+    // Preparing the pack
+    pack_final out_pack;
+    pack_open(out_data, out_pack, "w");
+    out_pack.num_images = imgs_index;
+    out_pack.pack_data_buffer = (pack_data*) malloc(imgs_index * sizeof(pack_data));
+    out_pack.pack_name_buffer = (pack_name*) malloc(imgs_index * sizeof(pack_name));
+
     for (int i = 0; i < imgs_index; i++)
     {
         
@@ -228,7 +243,7 @@ int main(int argc, char * argv)
         
         if (rect->was_packed)
         {
-            //printf("    %s x:%d y:%d\n", img->name, rect->x, rect->y);
+            //printf(".");
 
             // Copy image onto destination
             cpy_image(img->data, 
@@ -239,11 +254,80 @@ int main(int argc, char * argv)
                         rect->y + pad, 
                         IMAGE_SIZE, 
                         IMAGE_SIZE);
+            stbi_image_free(img->data);
+
+            pack_data &data = out_pack.pack_data_buffer[i];
+            data.q = img->q;
+            data.x = rect->x;
+            data.y = rect->y;
+
+            pack_name &name = out_pack.pack_name_buffer[i];
+            strcpy_s(name.name, img->name);
+            name.id = i;
+
+            //fprintf(out_data_file,"%04X%04X%04X%04X%04X%04X\n", data.x ,data.y, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
+            //fwrite(&data, sizeof(data), 1, out_data_file);
         }
+    }
+    pack_write(out_pack);
+    pack_close(out_pack);
+
+    free(out_pack.pack_data_buffer);
+    free(out_pack.pack_name_buffer);
+
+    free(imgs);
+
+    // test part
+    {
+        pack_final in_pack;
+        if(pack_open(out_data, in_pack, "r"))
+        {
+            in_pack.pack_data_buffer = (pack_data*) malloc(in_pack.num_images * sizeof(pack_data));
+            in_pack.pack_name_buffer = (pack_name*) malloc(in_pack.num_images * sizeof(pack_name));
+
+            pack_read(in_pack);
+            printf("Images found : %d\n", in_pack.num_images);
+            for(int i = 0; i < in_pack.num_images; i++)
+            {
+                pack_data& data = in_pack.pack_data_buffer[i];
+                pack_name& name = in_pack.pack_name_buffer[i];
+                printf("%s : %04X %04X %04X %04X %04X %04X\n", name.name, data.x ,data.y, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
+            }
+
+                    // Try to find some ids :
+
+            auto test_func = [](const char * name, pack_name* db, size_t size)
+            {
+                int id = pack_find(name, db, size);
+                if (id != -1)
+                {
+                    printf("Found %s : %d\n", name, id);
+                }
+                else
+                {
+                    printf("Couldn't find %s\n", name);
+                }
+            };
+
+            test_func("Hector99.png", in_pack.pack_name_buffer, in_pack.num_images);
+            test_func("zerztrsd", in_pack.pack_name_buffer, in_pack.num_images);
+            test_func("test_src9.png", in_pack.pack_name_buffer, in_pack.num_images);
+            test_func("Hector55.png", in_pack.pack_name_buffer, in_pack.num_images);
+            test_func("Hector19.png", in_pack.pack_name_buffer, in_pack.num_images);
+
+            pack_close(in_pack);
+        }
+
 
     }
 
-    stbi_write_png("../test.png", IMAGE_SIZE, IMAGE_SIZE, 4, out_image_data, IMAGE_SIZE * PIXEL_SIZE);
 
+    printf("\nOutput done");
+
+    stbi_write_png(out_path, IMAGE_SIZE, IMAGE_SIZE, 4, out_image_data, IMAGE_SIZE * PIXEL_SIZE);
+
+
+    free(out_image_data);
     FindClose(hndl);
+    fclose(out_data_file);
 }
