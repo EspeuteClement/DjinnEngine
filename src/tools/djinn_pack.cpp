@@ -260,6 +260,8 @@ int main(int argc, char * argv)
             data.q = img->q;
             data.x = rect->x;
             data.y = rect->y;
+            data.w = img->w;
+            data.h = img->h;
 
             pack_name &name = out_pack.pack_name_buffer[i];
             strcpy_s(name.name, img->name);

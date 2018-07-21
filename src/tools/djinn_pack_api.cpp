@@ -29,7 +29,7 @@ void pack_read(pack_final & info)
     for (int i = 0; i < info.num_images; i++)
     {
         pack_data& data = info.pack_data_buffer[i];
-        fscanf_s(fh,"%04hX%04hX%04hX%04hX%04hX%04hX\n", &data.x ,&data.y, &data.q.u1, &data.q.v1, &data.q.u2, &data.q.v2);
+        fscanf_s(fh,"%04hX%04hX%04hX%04hX%04hX%04hX%04hX%04hX\n", &data.x ,&data.y, &data.w, &data.h, &data.q.u1, &data.q.v1, &data.q.u2, &data.q.v2);
     }
 
     for (int i = 0; i < info.num_images; i++)
@@ -51,7 +51,7 @@ void pack_write(const pack_final & info)
     for (int i = 0; i < info.num_images; i++)
     {
         pack_data& data = info.pack_data_buffer[i];
-        fprintf(fh,"%04hX%04hX%04hX%04hX%04hX%04hX\n", data.x ,data.y, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
+        fprintf(fh,"%04hX%04hX%04hX%04hX%04hX%04hX%04hX%04hX\n", data.x ,data.y, data.w, data.h, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
     }
 
     for (int i = 0; i < info.num_images; i++)
