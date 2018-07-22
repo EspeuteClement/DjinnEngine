@@ -3,7 +3,7 @@
 echo %time%
 
 set LIBS=Gdi32.lib kernel32.lib user32.lib Shell32.lib Winmm.lib
-set FLAGS=/Zi /INCREMENTAL:NO -FC
+set FLAGS=/Zi /INCREMENTAL:NO -FC 
 
 IF NOT EXIST %~dp0build mkdir %~dp0build
 pushd %~dp0build

@@ -3,3 +3,4 @@
 #include "external/imgui/imgui_draw.cpp"
 #include "external/imgui/imgui_impl_djinn.cpp"
 #include "external/ugl.cpp"
+#include "tools/djinn_pack_api.cpp"

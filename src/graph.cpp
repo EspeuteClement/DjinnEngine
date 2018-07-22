@@ -4,6 +4,8 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image.h"
+#include "tools/djinn_pack_api.h"
+#include "external/imgui/imgui.h"
 
 unsigned char *test_image;
 
@@ -107,7 +109,29 @@ void graph_init(Memory* memory)
                           sizeof(float) * 7, (void*) (sizeof(float) * 5));
 
     int x,y,n;
-    test_image = stbi_load("data/tiles.png", &x,&y,&n, 4);
+    test_image = stbi_load("pack.png", &(memory->graph.img_width),&(memory->graph.img_height),&n, 4);
+
+    assert(test_image != nullptr);
+
+    // Test open image
+    {
+        pack_final data;
+        pack_open("pack.dat", data, "r");
+
+        data.pack_data_buffer = (pack_data*) malloc(data.num_images * sizeof(pack_data));
+        data.pack_name_buffer = (pack_name*) malloc(data.num_images * sizeof(pack_name));
+
+        pack_read(data);
+        
+        int index = pack_find("Hector1.png", data.pack_name_buffer, data.num_images);
+        memory->graph.test_image_data = data.pack_data_buffer[index];
+
+        pack_close(data);
+        free(data.pack_data_buffer);
+        free(data.pack_name_buffer);
+    }
+
+
 
     glGenTextures(1, &tex);
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -115,7 +139,7 @@ void graph_init(Memory* memory)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, test_image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (memory->graph.img_width),(memory->graph.img_height), 0, GL_RGBA, GL_UNSIGNED_BYTE, test_image);
 }
 
 void push_triangle(const vertex_struct& v1, const vertex_struct& v2, const vertex_struct& v3)
@@ -132,11 +156,11 @@ void push_triangle(const vertex_struct& v1, const vertex_struct& v2, const verte
 
 void push_quad(float x, float y, float w, float h, float ox, float oy, float ow, float oh)
 {
-    float u1 = ox/512.0f;
-    float u2 = u1+ow/512.0f;
+    float u1 = ox;
+    float u2 = ow;
 
-    float v1 = oy/240.0f;
-    float v2 = v1+oh/240.0f;
+    float v1 = oy;
+    float v2 = oh;
 
     float x2 = x + w;
     float y2 = y + h;
@@ -179,7 +203,7 @@ void graph_draw_all(Memory* memory)
             {   64.0f, 64.0f, 1.f, 1.f, 1.f,    2*16.0f/512.0f, 2*16.0f/240.0f }
     );*/
 
-    if (!is_init)
+    /*if (!is_init)
     {
         if (memory->x % 1 == 0)
         {
@@ -193,8 +217,20 @@ void graph_draw_all(Memory* memory)
         glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW); 
 
         is_init = false;
-    }
+    }*/
+    vertex_data.count = 0;
+    pack_data & d = memory->graph.test_image_data;
+    float w = memory->graph.img_width;
+    float h = memory->graph.img_height;
+    push_quad(128,128, (d.q.u2 - d.q.u1)*1, (d.q.v2 - d.q.v1)*1, d.q.u1/w, d.q.v1/h, d.q.u2/w, d.q.v2/h);
 
+    glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW); 
+
+    ImGui::Begin("Atlas Explorer", 0, ImGuiWindowFlags_HorizontalScrollbar);
+    ImTextureID id = (void *)(intptr_t) tex;
+    ImGui::Image(id, ImVec2(memory->graph.img_width, memory->graph.img_height), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
+
+    ImGui::End();
 
     // 512 240
     float ratio;
@@ -205,10 +241,10 @@ void graph_draw_all(Memory* memory)
     glViewport(0, 0, memory->screen_width, memory->screen_height);
     glClear(GL_COLOR_BUFFER_BIT);
     mat4x4_identity(m);
-    mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
-    mat4x4_rotate_Z(m, m, (float) memory->x/50);
-    mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
-
+    //mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
+    //mat4x4_rotate_Z(m, m, (float) memory->x/50);
+    //mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
+    mat4x4_scale_aniso(m,m,memory->screen_width/300,memory->screen_height/200,1);
 
     mat4x4_ortho(p, 0, memory->screen_width, memory->screen_height, 0, 0, 1.f);
     mat4x4_mul(mvp, p, m);

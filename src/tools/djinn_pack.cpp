@@ -142,10 +142,8 @@ int main(int argc, char * argv)
     char out_path[256];
     char out_data[256];
 
-    sprintf(out_path, "../test.png");
-    sprintf(out_data,"../test.dat");
-
-    FILE* out_data_file = fopen(out_data, "w");
+    sprintf(out_path, "../pack.png");
+    sprintf(out_data,"../pack.dat");
 
     stbrp_rect imgs_rects[IMG_MAX];
 
@@ -213,8 +211,6 @@ int main(int argc, char * argv)
     }
     while(FindNextFileA(hndl, &fileFindData) != 0 && imgs_index < IMG_MAX);
 
-    fprintf(out_data_file, "%d\n", imgs_index);
-
     printf("\nDone, found %d files !", imgs_index);
     printf("\nStart Packing !\n");
     stbrp_node nodes[NODE_COUNT];
@@ -257,11 +253,15 @@ int main(int argc, char * argv)
             stbi_image_free(img->data);
 
             pack_data &data = out_pack.pack_data_buffer[i];
-            data.q = img->q;
-            data.x = rect->x;
-            data.y = rect->y;
-            data.w = img->w;
-            data.h = img->h;
+            data.q.u1 = rect->x;
+            data.q.v1 = rect->y;
+            data.q.u2 = rect->x + rect->w;
+            data.q.v2 = rect->y + rect->h;
+
+            data.ox = img->q.u1;
+            data.oy = img->q.v1;
+            data.ow = img->w;
+            data.oh = img->h;
 
             pack_name &name = out_pack.pack_name_buffer[i];
             strcpy_s(name.name, img->name);
@@ -293,7 +293,7 @@ int main(int argc, char * argv)
             {
                 pack_data& data = in_pack.pack_data_buffer[i];
                 pack_name& name = in_pack.pack_name_buffer[i];
-                printf("%s : %04X %04X %04X %04X %04X %04X\n", name.name, data.x ,data.y, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
+                printf("%s : %04X %04X %04X %04X %04X %04X\n", name.name, data.ox ,data.oy, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
             }
 
                     // Try to find some ids :
@@ -331,5 +331,4 @@ int main(int argc, char * argv)
 
     free(out_image_data);
     FindClose(hndl);
-    fclose(out_data_file);
 }

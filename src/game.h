@@ -1,4 +1,6 @@
 #pragma once
+#include "tools/djinn_pack_api.h"
+
 #include <cstdint>
 typedef int32_t s32;
 typedef uint32_t u32;
@@ -31,6 +33,14 @@ inline void AddDebugFrame(Debug *debug, r32 lastTime)
     debug->currentTimeFrame = (debug->currentTimeFrame + 1) % DEBUG_FRAMES_COUNT;
 }
 
+struct Graph
+{
+    int img_width;
+    int img_height;
+    
+    pack_data test_image_data;
+};
+
 struct Memory
 {
     s32 x;
@@ -39,6 +49,7 @@ struct Memory
     s32 screen_width;
     s32 screen_height;
 
+    Graph graph;
     Input input;
 
     // These function are ment to be called from the main application when the envents are encountered
