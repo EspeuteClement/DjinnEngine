@@ -16,7 +16,7 @@ bool pack_open(const char * file, pack_final & info, const char * mode)
         return false;
     }*/
 
-    fscanf_s(info._file_handle, "%04hX\n", &info.num_images);
+    fscanf(info._file_handle, "%04hX\n", &info.num_images);
 
     return true;
 }
@@ -29,13 +29,13 @@ void pack_read(pack_final & info)
     for (int i = 0; i < info.num_images; i++)
     {
         pack_data& data = info.pack_data_buffer[i];
-        fscanf_s(fh,"%04hX%04hX%04hX%04hX%04hX%04hX%04hX%04hX\n", &data.q.u1, &data.q.v1, &data.q.u2, &data.q.v2,&data.ox ,&data.oy, &data.ow, &data.oh );
+        fscanf(fh,"%04hX%04hX%04hX%04hX%04hX%04hX%04hX%04hX\n", &data.q.u1, &data.q.v1, &data.q.u2, &data.q.v2,&data.ox ,&data.oy, &data.ow, &data.oh );
     }
 
     for (int i = 0; i < info.num_images; i++)
     {
         pack_name& data = info.pack_name_buffer[i];
-        fscanf_s(fh, "%04hX %s\n", &data.id, &data.name, 32);
+        fscanf(fh, "%04hX %s\n", &data.id, (char *) &data.name);
     }
 }
 
@@ -57,7 +57,7 @@ void pack_write(const pack_final & info)
     for (int i = 0; i < info.num_images; i++)
     {
         pack_name& data = info.pack_name_buffer[i];
-        fprintf_s(fh, "%04hX %s\n", data.id, data.name);
+        fprintf(fh, "%04hX %s\n", data.id, data.name);
     }
 }
 

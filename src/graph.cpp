@@ -74,7 +74,7 @@ struct
 } vertex_data;
 
 
-void graph_init(Memory* memory)
+void djn_gfx_init(Memory* memory)
 {
     if (memory->proc)
     {
@@ -109,25 +109,24 @@ void graph_init(Memory* memory)
                           sizeof(float) * 7, (void*) (sizeof(float) * 5));
 
     int x,y,n;
-    test_image = stbi_load("pack.png", &(memory->graph.img_width),&(memory->graph.img_height),&n, 4);
+    test_image = stbi_load("data/pack.png", &(memory->graph.img_width),&(memory->graph.img_height),&n, 4);
 
     assert(test_image != nullptr);
 
     // Test open image
     {
         pack_final data;
-        pack_open("pack.dat", data, "r");
+        pack_open("data/pack.dat", data, "r");
 
-        data.pack_data_buffer = (pack_data*) malloc(data.num_images * sizeof(pack_data));
+        data.pack_data_buffer = &(memory->graph.data[0]);
         data.pack_name_buffer = (pack_name*) malloc(data.num_images * sizeof(pack_name));
 
         pack_read(data);
         
-        int index = pack_find("Hector1.png", data.pack_name_buffer, data.num_images);
-        memory->graph.test_image_data = data.pack_data_buffer[index];
+        //int index = pack_find("Hector1.png", data.pack_name_buffer, data.num_images);
+        //memory->graph.test_image_data = data.pack_data_buffer[index];
 
         pack_close(data);
-        free(data.pack_data_buffer);
         free(data.pack_name_buffer);
     }
 
@@ -192,18 +191,70 @@ void push_quad(float x, float y, float w, float h, float ox, float oy, float ow,
 
 }
 
-bool is_init = false;
-void graph_draw_all(Memory* memory)
+void djn_gfx_setup_view(Memory* memory)
 {
-    
-    /*push_triangle
-    (
-            {   0.0f, 0.0f, 1.f, 1.f, 1.f,      16.0f/512.0f, 16.0f/240.0f },
-            {   0.0f, 64.0f, 1.f, 1.f, 1.f,     16.0f/512.0f, 2*16.0f/240.0f },
-            {   64.0f, 64.0f, 1.f, 1.f, 1.f,    2*16.0f/512.0f, 2*16.0f/240.0f }
-    );*/
+    float ratio;
+    int width, height;
+    mat4x4 m, p, mvp;
 
-    /*if (!is_init)
+    ratio = memory->screen_width / (float) memory->screen_height;
+    glViewport(0, 0, memory->screen_width, memory->screen_height);
+    glClear(GL_COLOR_BUFFER_BIT);
+    mat4x4_identity(m);
+    //mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
+    //mat4x4_rotate_Z(m, m, (float) memory->x/50);
+    //mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
+    mat4x4_scale_aniso(m,m,memory->screen_width/400,memory->screen_height/300,1);
+
+    mat4x4_ortho(p, 0, memory->screen_width, memory->screen_height, 0, 0, 1.f);
+    mat4x4_mul(mvp, p, m);
+    glUseProgram(program);
+    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+}
+
+void djn_gfx_draw_vertex_data(Memory* memory)
+{
+    glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW);
+    glDrawArrays(GL_TRIANGLES, 0, vertex_data.count);
+}
+
+void djn_gfx_begin(Memory* memory)
+{
+    vertex_data.count = 0;
+}
+
+void djn_gfx_end(Memory* memory)
+{
+    djn_gfx_setup_view(memory);
+    djn_gfx_draw_vertex_data(memory);
+}
+
+bool is_init = false;
+void djn_gfx_draw_all(Memory* memory)
+{
+    djn_gfx_begin(memory);
+    
+    pack_data & d = memory->graph.data[((memory->x++)/3) % 221];
+    float w = memory->graph.img_width;
+    float h = memory->graph.img_height;
+    
+    push_quad(128 + d.ox,128 + d.oy, (d.q.u2 - d.q.u1)*1, (d.q.v2 - d.q.v1)*1, d.q.u1/w, d.q.v1/h, d.q.u2/w, d.q.v2/h);
+
+    djn_gfx_end(memory);
+}
+
+
+// Test draw image imgui
+#if 0
+    ImGui::Begin("Atlas Explorer", 0, ImGuiWindowFlags_HorizontalScrollbar);
+    ImTextureID id = (void *)(intptr_t) tex;
+    ImGui::Image(id, ImVec2(memory->graph.img_width, memory->graph.img_height), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
+    ImGui::End();
+#endif
+
+// Benchmark draw tons of triangles
+#if 0
+    if (!is_init)
     {
         if (memory->x % 1 == 0)
         {
@@ -217,40 +268,5 @@ void graph_draw_all(Memory* memory)
         glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW); 
 
         is_init = false;
-    }*/
-    vertex_data.count = 0;
-    pack_data & d = memory->graph.test_image_data;
-    float w = memory->graph.img_width;
-    float h = memory->graph.img_height;
-    push_quad(128,128, (d.q.u2 - d.q.u1)*1, (d.q.v2 - d.q.v1)*1, d.q.u1/w, d.q.v1/h, d.q.u2/w, d.q.v2/h);
-
-    glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW); 
-
-    ImGui::Begin("Atlas Explorer", 0, ImGuiWindowFlags_HorizontalScrollbar);
-    ImTextureID id = (void *)(intptr_t) tex;
-    ImGui::Image(id, ImVec2(memory->graph.img_width, memory->graph.img_height), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
-
-    ImGui::End();
-
-    // 512 240
-    float ratio;
-    int width, height;
-    mat4x4 m, p, mvp;
-
-    ratio = memory->screen_width / (float) memory->screen_height;
-    glViewport(0, 0, memory->screen_width, memory->screen_height);
-    glClear(GL_COLOR_BUFFER_BIT);
-    mat4x4_identity(m);
-    //mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
-    //mat4x4_rotate_Z(m, m, (float) memory->x/50);
-    //mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
-    mat4x4_scale_aniso(m,m,memory->screen_width/300,memory->screen_height/200,1);
-
-    mat4x4_ortho(p, 0, memory->screen_width, memory->screen_height, 0, 0, 1.f);
-    mat4x4_mul(mvp, p, m);
-    glUseProgram(program);
-    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
-
-
-    glDrawArrays(GL_TRIANGLES, 0, vertex_data.count);
-}
+    }
+#endif

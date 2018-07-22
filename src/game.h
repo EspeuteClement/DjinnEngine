@@ -33,12 +33,16 @@ inline void AddDebugFrame(Debug *debug, r32 lastTime)
     debug->currentTimeFrame = (debug->currentTimeFrame + 1) % DEBUG_FRAMES_COUNT;
 }
 
+#define DJN_TEXTURE_WIDTH (1024)
+#define DJN_TEXTURE_SIZE (DJN_TEXTURE_WIDTH * DJN_TEXTURE_WIDTH * 4)
+#define IMAGE_DATA_MAX (512)
 struct Graph
 {
     int img_width;
     int img_height;
-    
-    pack_data test_image_data;
+    unsigned char texture[DJN_TEXTURE_SIZE];
+
+    pack_data data[IMAGE_DATA_MAX];
 };
 
 struct Memory
@@ -61,6 +65,8 @@ struct Memory
     Debug debug;
 };
 
+// Note : Never store this pointer !!! It can become invalid at any moment
+extern Memory* djn_memory;
 
 
 #ifdef __STANDALONE__

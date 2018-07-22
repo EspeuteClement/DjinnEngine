@@ -293,7 +293,7 @@ int main(int argc, char * argv)
             {
                 pack_data& data = in_pack.pack_data_buffer[i];
                 pack_name& name = in_pack.pack_name_buffer[i];
-                printf("%s : %04X %04X %04X %04X %04X %04X\n", name.name, data.ox ,data.oy, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
+                printf("%16s : x:%04d y:%04d w:%04d h:%04d u1:%04d v1:%04d u2:%04d v2:%04d\n", name.name, data.ox ,data.oy, data.ow, data.oh, data.q.u1, data.q.v1, data.q.u2, data.q.v2);
             }
 
                     // Try to find some ids :

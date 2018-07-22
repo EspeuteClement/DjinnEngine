@@ -1,7 +1,12 @@
+// Djinn Engine Graphics Library
+//
 #pragma once
 
+// Includes
 #include "game.h"
 
-void graph_init(Memory* mem);
+// Init all the graphics
+void djn_gfx_init(Memory* mem);
 
-void graph_draw_all(Memory* mem);
+// Debug function that draw stuff on the screen
+void djn_gfx_draw_all(Memory* mem);

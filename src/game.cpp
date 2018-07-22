@@ -5,32 +5,7 @@
 #include "external/imgui/imgui.h"
 #include "external/imgui/imgui_impl_djinn.h"
 
-static const struct
-{
-    float x, y;
-    float r, g, b;
-} vertices[3] =
-{
-    { -0.6f, -0.4f, 1.f, 0.f, 1.f },
-    {  0.6f, -0.4f, 0.f, 1.f, 1.f },
-    {   0.f,  0.6f, 1.f, 1.f, 0.f }
-};
-
-static const struct
-{
-    float x, y;
-    float r, g, b;
-    float u, v;
-} new_vertices[6] =
-{
-    {   0.0f, 0.0f, 1.f, 1.f, 1.f, 0.0f, 0.0f },
-    {   0.0f, 240.0f, 1.f, 1.f, 1.f, 0.0f, 1.0f },
-    {   512.0f, 240.0f, 1.f, 1.f, 1.f, 1.0f, 1.0f },
-    {   0.0f, 0.0f, 1.f, 1.f, 1.f, 0.0f, 0.0f },
-    {   512.0f, 0.0f, 1.f, 1.f, 1.f, 1.0f, 0.0f },
-    {   512.0f, 240.0f, 1.f, 1.f, 1.f, 1.0f, 1.0f }
-};
-
+Memory* djn_memory = nullptr;
 
 void OnCharInputCallback(u32 c)
 {
@@ -62,7 +37,8 @@ void SetCallbacks(Memory* memory)
 
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
-    graph_init(memory);
+    djn_memory = memory;
+    djn_gfx_init(memory);
     
     SetCallbacks(memory);
     
@@ -73,12 +49,33 @@ GAME_INIT_GRAPHIC(game_init_graphic)
     ImGui::StyleColorsDark();
 }
 
-bool show_another_window = true;
-
-#include "external/imgui/imgui_demo.cpp"
-
-GAME_LOOP(game_loop)
+void djn_game_debug_menu(Memory* memory)
 {
+    float mean_fps = 0.0f;
+    float min = 100;
+    float max = 0;
+    for (int i = 0; i < DEBUG_FRAMES_COUNT; i++)
+    {
+        float value = memory->debug.lastFrameTimesMs[i]; 
+        mean_fps += value / (float) DEBUG_FRAMES_COUNT;
+        min = min > value ? value : min;
+        max = max < value ? value : max;
+    }
+    ImGui::BeginMainMenuBar();
+        ImGui::Text("fps : %03.1f",  1000.0f/(mean_fps));
+        if(ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            ImGui::PlotLines("FrameGraph", memory->debug.lastFrameTimesMs, DEBUG_FRAMES_COUNT, memory->debug.currentTimeFrame, 0, 0.0f, 40.0f, ImVec2(300,150));
+            ImGui::Text("min: %04.2f max: %04.2f avg:%04.2f", min, max, mean_fps);
+            ImGui::EndTooltip();
+        }
+    ImGui::EndMainMenuBar();
+}
+
+void djn_game_imgui_begin()
+{
+    Memory* memory = djn_memory;
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.DisplaySize.x = memory->screen_width;
     io.DisplaySize.y = memory->screen_height;
@@ -97,30 +94,23 @@ GAME_LOOP(game_loop)
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui::NewFrame();
+}
 
-    graph_draw_all(memory);
-
-
-    //printf("%5d : FUCK THE RULES ! !\n", memory->screen_width);
-    memory->x ++ ;
-
-    ImGui::BeginMainMenuBar();
-        //ImGui::Text("%f05.3", memory->debug.lastFrameTimesMs[0]);
-        if(ImGui::BeginMenu("Test"))
-        {
-            ImGui::PlotLines("FrameGraph", memory->debug.lastFrameTimesMs, DEBUG_FRAMES_COUNT, memory->debug.currentTimeFrame, 0, 0.0f, 100.0f, ImVec2(300,300));
-            ImGui::EndMenu();
-        }
-    ImGui::EndMainMenuBar();
-
-    if (show_another_window)
-    {
-    ImGui::ShowDemoWindow(&show_another_window);
-    }
-
+void djn_game_imgui_end()
+{
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
 
+GAME_LOOP(game_loop)
+{
+    djn_memory = memory;
+    djn_game_imgui_begin();
+
+    djn_gfx_draw_all(memory);
+    djn_game_debug_menu(memory);
+
+    djn_game_imgui_end();
 }
 
 GAME_UNLOAD_GRAPHIC(game_unload_graphic)

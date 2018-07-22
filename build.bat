@@ -8,7 +8,7 @@ set FLAGS=/Zi /INCREMENTAL:NO -FC
 IF NOT EXIST %~dp0build mkdir %~dp0build
 pushd %~dp0build
 del /Q *.pdb > NUL 2> NUL
-cl  /Fe:game.dll %FLAGS% ../src/game.all.cpp /DLL /LD /nologo /link /INCREMENTAL:NO /PDB:game.%random%.pdb
+cl  /Fe:game.dll %FLAGS% ../src/game.all.cpp /DLL /LDd /nologo /link /INCREMENTAL:NO /PDB:game.%random%.pdb
 echo === Finished building game.dll at %time%
 cl  %FLAGS%  /D_GLFW_WIN32 ../src/win32_platform.cpp ../src/external/external.all.c %LIBS%  /nologo /link /INCREMENTAL:NO /PDB:testglfw.%random%.pdb
 echo %time%

@@ -115,8 +115,8 @@ int main(int argc, char* args[])
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    Memory memory = {};
-    memory_ptr = &memory;
+    memory_ptr = (Memory*) malloc(sizeof(Memory));
+    memset(memory_ptr, 0, sizeof(Memory));
 
     game_code_data code_data = LoadGameCode();
 
@@ -133,8 +133,8 @@ int main(int argc, char* args[])
         return(-1);
     }
 
-    memory.proc = (void*)glfwGetProcAddress;
-    code_data.game_init_graphic(&memory);
+    memory_ptr->proc = (void*)glfwGetProcAddress;
+    code_data.game_init_graphic(memory_ptr);
 
     
     int frame_acc = 0;
@@ -151,23 +151,23 @@ int main(int argc, char* args[])
             {
                 double x, y;
                 glfwGetCursorPos(window, &x, &y);
-                memory.input.mouse_x = x;
-                memory.input.mouse_y = y;
+                memory_ptr->input.mouse_x = x;
+                memory_ptr->input.mouse_y = y;
 
                 for (int i = 0; i < 5; i++)
                 {
-                    memory.input.mouse_btn[i] = glfwGetMouseButton(window, i);
+                    memory_ptr->input.mouse_btn[i] = glfwGetMouseButton(window, i);
                 } 
             }
             
         }
 
-        glfwGetFramebufferSize(window, &memory.screen_width, &memory.screen_height);
+        glfwGetFramebufferSize(window, &memory_ptr->screen_width, &memory_ptr->screen_height);
 
         /* Render here */
         //glClear(GL_COLOR_BUFFER_BIT);
        
-        code_data.game_loop(&memory);
+        code_data.game_loop(memory_ptr);
 
 
 #ifndef __STANDALONE__
@@ -175,31 +175,26 @@ int main(int argc, char* args[])
                 
         if (CompareFileTime(&currentFileTime, &code_data.lastWriteTime) > 0)
         {
-            code_data.game_unload_graphic(&memory);
+            code_data.game_unload_graphic(memory_ptr);
 
             UnloadGameCode(code_data);
             code_data = LoadGameCode();
             code_data.lastWriteTime = currentFileTime;
 
-            code_data.game_init_graphic(&memory);
+            code_data.game_init_graphic(memory_ptr);
         }
 #endif
 
-
         /* Swap front and back buffers */
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(window);        
 
-
-
-        
-
-        memset(&memory.input, 0, sizeof(memory.input));
+        memset(&memory_ptr->input, 0, sizeof(memory_ptr->input));
         /* Poll for and process events */
         glfwPollEvents();
 
         uint64_t end_time = djn::get_time_micro();
         
-        AddDebugFrame(&memory.debug, (end_time - start_time)/1000.0f);
+        AddDebugFrame(&memory_ptr->debug, (end_time - start_time)/1000.0f);
 
         if (frame_acc >= 0)
         {
