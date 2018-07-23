@@ -93,9 +93,21 @@ void KeyFunc(GLFWwindow*, int key, int, int action, int mods)
         memory_ptr->OnKeyCallback(key, action, mods);
 }
 
+void init_memory()
+{
+    uint64_t start_time = djn::get_time_micro();
+
+    memory_ptr = (Memory*) malloc(sizeof(Memory));
+    memset(memory_ptr, 0, sizeof(Memory));
+
+    uint64_t end_time = djn::get_time_micro();
+
+    printf("Game memory footprint is %d kb, memory init in %d us\n", sizeof(Memory) / 1024, (uint32_t) (end_time - start_time));
+}
 
 int main(int argc, char* args[])
 {
+    uint64_t startup_time = djn::get_time_micro();
     GLFWwindow* window;
 
     /* Initialize the library */
@@ -109,14 +121,17 @@ int main(int argc, char* args[])
         glfwTerminate();
         return -1;
     }
+    startup_time = djn::get_time_micro() - startup_time;
+    char buffer[32];
+    printf("GLFW startup time : %s us\n", pretty_number(startup_time, buffer));
 
-        glfwWindowHint(GLFW_SAMPLES, 0);
+    init_memory();
+
+    glfwWindowHint(GLFW_SAMPLES, 0);
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
 
-    memory_ptr = (Memory*) malloc(sizeof(Memory));
-    memset(memory_ptr, 0, sizeof(Memory));
 
     game_code_data code_data = LoadGameCode();
 
