@@ -35,6 +35,7 @@ static const char* vertex_shader_text =
 "precision mediump float;\n"
 "#endif\n"
 "uniform mat4 MVP;\n"
+"uniform vec2 uTexSize;\n"
 "attribute vec3 vCol;\n"
 "attribute vec2 vPos;\n"
 "attribute vec2 vTexCoord;\n"
@@ -42,7 +43,7 @@ static const char* vertex_shader_text =
 "varying vec3 color;\n"
 "void main()\n"
 "{\n"
-"    texcoord = vTexCoord;\n"
+"    texcoord = vTexCoord/uTexSize;\n"
 "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
 "    color = vCol;\n"
 "}\n";
@@ -64,6 +65,7 @@ GLuint vertex_shader, fragment_shader, program;
 
 GLuint tex;
 GLint mvp_location;
+GLint uTexSize_location;
 
 #define FACTOR 4000
 #define MAX_VERTEX FACTOR*7
@@ -92,7 +94,8 @@ void djn_gfx_init(Memory* memory)
 
     GLuint vpos_location, vcol_location, vtex_location;
 
-    mvp_location = glGetUniformLocation(program, "MVP"); 
+    mvp_location = glGetUniformLocation(program, "MVP");
+    uTexSize_location = glGetUniformLocation(program, "uTexSize");
     vpos_location = glGetAttribLocation(program, "vPos"); 
     vcol_location = glGetAttribLocation(program, "vCol");
     vtex_location = glGetAttribLocation(program, "vTexCoord");
@@ -191,6 +194,14 @@ void push_quad(float x, float y, float w, float h, float ox, float oy, float ow,
 
 }
 
+void push_sprite(int id, float x, float y, float scale_w = 1.0f, float scale_h = 1.0f)
+{
+    
+    pack_data & d = djn_memory->graph.data[id];
+
+    push_quad(x+d.ox,y+d.oy, (d.q.u2 - d.q.u1) * scale_w, (d.q.v2 - d.q.v1) * scale_h, d.q.u1, d.q.v1, d.q.u2, d.q.v2);
+}
+
 void djn_gfx_setup_view(Memory* memory)
 {
     float ratio;
@@ -210,6 +221,7 @@ void djn_gfx_setup_view(Memory* memory)
     mat4x4_mul(mvp, p, m);
     glUseProgram(program);
     glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+    glUniform2f(uTexSize_location, (float) memory->graph.img_width, (float) memory->graph.img_height);
 }
 
 void djn_gfx_draw_vertex_data(Memory* memory)
@@ -234,11 +246,8 @@ void djn_gfx_draw_all(Memory* memory)
 {
     djn_gfx_begin(memory);
     
-    pack_data & d = memory->graph.data[((memory->x++)/3) % 221];
-    float w = memory->graph.img_width;
-    float h = memory->graph.img_height;
     
-    push_quad(128 + d.ox,128 + d.oy, (d.q.u2 - d.q.u1)*1, (d.q.v2 - d.q.v1)*1, d.q.u1/w, d.q.v1/h, d.q.u2/w, d.q.v2/h);
+    push_sprite((memory->x++/4)%221, 64,64);
 
     djn_gfx_end(memory);
 }

@@ -196,6 +196,7 @@ typedef void        (GL_API UGL_HANDLE( glGetProgramInfoLog         )) (GLuint p
 typedef void        (GL_API UGL_HANDLE( glDeleteProgram             )) ( GLuint program);
 typedef void        (GL_API UGL_HANDLE( glDetachShader              )) ( GLuint program, GLuint shader);
 typedef void        (GL_API UGL_HANDLE( glDeleteBuffers             )) ( GLsizei n, const GLuint * buffers);
+typedef void        (GL_API UGL_HANDLE( glUniform2f                 )) ( GLint location, GLfloat v0, GLfloat v1);
 
 // Used to get all the functions using various macros
 #define UGL_FUNCTIONS(OP) \
@@ -249,6 +250,7 @@ typedef void        (GL_API UGL_HANDLE( glDeleteBuffers             )) ( GLsizei
         OP(glDeleteProgram              )\
         OP(glDetachShader               )\
         OP(glDeleteBuffers              )\
+        OP(glUniform2f                  )\
 
 
 // Context (store it somewhere)

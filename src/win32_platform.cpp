@@ -199,7 +199,7 @@ int main(int argc, char* args[])
         if (frame_acc >= 0)
         {
             //if ((end_time - start_time) > 20000)
-                printf("Frame_time = %d\n" , (uint32_t) (end_time - start_time));
+                //printf("Frame_time = %d\n" , (uint32_t) (end_time - start_time));
             frame_acc = 0;
         }
     }
