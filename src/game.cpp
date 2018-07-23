@@ -5,6 +5,12 @@
 #include "external/imgui/imgui.h"
 #include "external/imgui/imgui_impl_djinn.h"
 
+#define DR_WAV_IMPLEMENTATION
+#include "external/mini_al/dr_wav.h"
+
+#define MINI_AL_IMPLEMENTATION
+#include "external/mini_al/mini_al.h"
+
 Memory* djn_memory = nullptr;
 
 void OnCharInputCallback(u32 c)
@@ -34,12 +40,66 @@ void SetCallbacks(Memory* memory)
     memory->OnKeyCallback = &OnKeyCallback;
 }
 
+#include <cmath>
+
+float volume = 1.0f;
+
+mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, void* pSamples)
+{
+    mal_decoder* pDecoder = (mal_decoder*)pDevice->pUserData;
+    if (pDecoder == NULL) {
+        return 0;
+    }
+
+    mal_uint32 samples_read = mal_decoder_read(pDecoder, frameCount, pSamples);
+
+    float* pSamplesFloat = (float*) pSamples;
+    for (int i = 0; i < (samples_read*2); i++)
+    {
+        pSamplesFloat[i] = pSamplesFloat[i] * volume;
+    }
+
+    return samples_read;
+}
+
+
+
+mal_decoder decoder;
+mal_device_config config;
+mal_device device;
+mal_decoder_config cfg;
+
 
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
     djn_memory = memory;
     djn_gfx_init(memory);
+
+    cfg.format = mal_format_f32;
+    mal_result result = mal_decoder_init_file("data/stars.wav", &cfg, &decoder);
+    if (result != MAL_SUCCESS) {
+        printf("Couldn't init MAL file\n");
+    }
+
+
+    config = mal_device_config_init_playback(
+        decoder.outputFormat,
+        decoder.outputChannels,
+        decoder.outputSampleRate,
+        on_send_frames_to_device);
     
+    
+    if (mal_device_init(NULL, mal_device_type_playback, NULL, &config, &decoder, &device) != MAL_SUCCESS) {
+        printf("Failed to open playback device.\n");
+        mal_decoder_uninit(&decoder);
+    }
+
+    if (mal_device_start(&device) != MAL_SUCCESS) {
+        printf("Failed to start playback device.\n");
+        mal_device_uninit(&device);
+        mal_decoder_uninit(&decoder);
+    }
+
     SetCallbacks(memory);
     
     ImGui::CreateContext();
@@ -70,7 +130,12 @@ void djn_game_debug_menu(Memory* memory)
             ImGui::Text("min: %04.2f max: %04.2f avg:%04.2f", min, max, mean_fps);
             ImGui::EndTooltip();
         }
+        ImGui::Text("Hello world");
+
     ImGui::EndMainMenuBar();
+
+    ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
+    ImGui::Text("Samples : %d", device.)
 }
 
 void djn_game_imgui_begin()
@@ -118,6 +183,9 @@ GAME_UNLOAD_GRAPHIC(game_unload_graphic)
     ImGui_ImplOpenGL3_Shutdown();
     
     ImGui::DestroyContext();
+
+    mal_device_uninit(&device);
+    mal_decoder_uninit(&decoder);
     //stbi_image_free(test_image);
     // Do nothing at the moment
 }

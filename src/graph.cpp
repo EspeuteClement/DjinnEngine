@@ -82,7 +82,7 @@ void djn_gfx_init(Memory* memory)
     {
         uGlLoadGL((uGlLoadProc)memory->proc);
     }
-
+    
     vertex_data.count = 0;
 
     glDisable(GL_MULTISAMPLE);
