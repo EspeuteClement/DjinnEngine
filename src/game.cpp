@@ -62,19 +62,42 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
     return samples_read;
 }
 
+void djn_game_imgui_begin()
+{
+    Memory* memory = djn_memory;
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.DisplaySize.x = memory->screen_width;
+    io.DisplaySize.y = memory->screen_height;
 
+    io.MousePos.x = memory->input.mouse_x;
+    io.MousePos.y = memory->input.mouse_y;
+
+    io.MouseWheel = memory->input.mouse_sy;
+    io.MouseWheelH = memory->input.mouse_sx;
+
+
+    for (int i = 0; i < 5; i++)
+    {
+        io.MouseDown[i] =  memory->input.mouse_btn[i];
+    } 
+
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui::NewFrame();
+}
+
+void djn_game_imgui_end()
+{
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
 
 mal_decoder decoder;
 mal_device_config config;
 mal_device device;
 mal_decoder_config cfg;
 
-
-GAME_INIT_GRAPHIC(game_init_graphic)
+void init_audio()
 {
-    djn_memory = memory;
-    djn_gfx_init(memory);
-
     cfg.format = mal_format_f32;
     mal_result result = mal_decoder_init_file("data/stars.wav", &cfg, &decoder);
     if (result != MAL_SUCCESS) {
@@ -99,6 +122,12 @@ GAME_INIT_GRAPHIC(game_init_graphic)
         mal_device_uninit(&device);
         mal_decoder_uninit(&decoder);
     }
+}
+
+GAME_INIT_GRAPHIC(game_init_graphic)
+{
+    djn_memory = memory;
+    djn_gfx_init(memory);
 
     SetCallbacks(memory);
     
@@ -135,36 +164,7 @@ void djn_game_debug_menu(Memory* memory)
     ImGui::EndMainMenuBar();
 
     ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
-    ImGui::Text("Samples : %d", device.)
-}
-
-void djn_game_imgui_begin()
-{
-    Memory* memory = djn_memory;
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.DisplaySize.x = memory->screen_width;
-    io.DisplaySize.y = memory->screen_height;
-
-    io.MousePos.x = memory->input.mouse_x;
-    io.MousePos.y = memory->input.mouse_y;
-
-    io.MouseWheel = memory->input.mouse_sy;
-    io.MouseWheelH = memory->input.mouse_sx;
-
-
-    for (int i = 0; i < 5; i++)
-    {
-        io.MouseDown[i] =  memory->input.mouse_btn[i];
-    } 
-
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui::NewFrame();
-}
-
-void djn_game_imgui_end()
-{
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    //ImGui::Text("Samples : %d", device.)
 }
 
 GAME_LOOP(game_loop)
