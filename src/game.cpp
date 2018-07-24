@@ -44,23 +44,7 @@ void SetCallbacks(Memory* memory)
 
 float volume = 1.0f;
 
-mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, void* pSamples)
-{
-    mal_decoder* pDecoder = (mal_decoder*)pDevice->pUserData;
-    if (pDecoder == NULL) {
-        return 0;
-    }
 
-    mal_uint32 samples_read = mal_decoder_read(pDecoder, frameCount, pSamples);
-
-    float* pSamplesFloat = (float*) pSamples;
-    for (int i = 0; i < (samples_read*2); i++)
-    {
-        pSamplesFloat[i] = pSamplesFloat[i] * volume;
-    }
-
-    return samples_read;
-}
 
 void djn_game_imgui_begin()
 {
@@ -95,10 +79,121 @@ mal_decoder decoder;
 mal_device_config config;
 mal_device device;
 mal_decoder_config cfg;
+mal_context Ctxt;
+
+uint32_t sample_pos = 0;
+int32_t pitch_index = 25;
+#define SAMPLE_RATE 44100
+
+#define NUM_NOTES 256
+static int pitch[88];
+
+
+float samples[]
+=
+{
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f,
+    -1.0f
+};
+
+float sample_acc = 0.0f;
+
+static double GetNoteSampleRate(int note)
+{
+	return (pitch[note]) / 44100.0f;
+}
+
+static double interpolate(float a, float b, float c)
+{
+    return a + (b-a) * c;
+}
+
+mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, void* pSamples)
+{
+    /*mal_decoder* pDecoder = (mal_decoder*)pDevice->pUserData;
+    if (pDecoder == NULL) {
+        return 0;
+    }
+
+    mal_uint32 samples_read = mal_decoder_read(pDecoder, frameCount, pSamples);
+
+    float* pSamplesFloat = (float*) pSamples;
+    for (int i = 0; i < (samples_read*2); i++)
+    {
+        pSamplesFloat[i] = pSamplesFloat[i] * volume;
+    }
+
+    return samples_read;*/
+    float sample_speed = GetNoteSampleRate(pitch_index) * 32;
+
+    float* pSamplesFloat = (float*) pSamples;
+    for (int i = 0; i < (frameCount*2); i++)
+    {
+        int current_sample = ((int)sample_acc) % 32;
+        int sample_2 = (current_sample + 1) % 32;
+        float vol = volume * 0.1f * interpolate(samples[current_sample], samples[sample_2], sample_acc - (int) sample_acc);
+        
+		pSamplesFloat[i] = vol;
+
+        if ((i % 2) == 1)
+        {
+            sample_acc += sample_speed;
+            if (sample_acc > 32)
+            {
+                sample_acc -= 32;
+            }
+        }
+
+
+    }
+
+    return frameCount;
+}
+
+
+
+static void init_pitch(void)
+{
+    
+    for(int i=0;i<NUM_NOTES;i++)
+    {
+        pitch[i] = (int)(441.0*(pow(2.0,((i-19.0)/12.0)))); // https://en.wikipedia.org/wiki/Equal_temperament
+    }
+}
 
 void init_audio()
 {
-    cfg.format = mal_format_f32;
+    /*cfg.format = mal_format_f32;
     mal_result result = mal_decoder_init_file("data/stars.wav", &cfg, &decoder);
     if (result != MAL_SUCCESS) {
         printf("Couldn't init MAL file\n");
@@ -111,7 +206,6 @@ void init_audio()
         decoder.outputSampleRate,
         on_send_frames_to_device);
     
-    
     if (mal_device_init(NULL, mal_device_type_playback, NULL, &config, &decoder, &device) != MAL_SUCCESS) {
         printf("Failed to open playback device.\n");
         mal_decoder_uninit(&decoder);
@@ -121,6 +215,31 @@ void init_audio()
         printf("Failed to start playback device.\n");
         mal_device_uninit(&device);
         mal_decoder_uninit(&decoder);
+    }*/
+
+    init_pitch();
+
+    if (mal_context_init(NULL, 0, NULL, &Ctxt) != MAL_SUCCESS)
+    {
+        printf("Couldn't init audio context\n");
+        return;
+    }
+
+    config = mal_device_config_init(mal_format_f32, 2, SAMPLE_RATE, NULL, &on_send_frames_to_device);
+
+    if (mal_device_init(&Ctxt, mal_device_type_playback,NULL, &config, NULL, &device))
+    {
+        printf("Couldn't init mal device\n");
+        mal_context_uninit(&Ctxt);
+        return;
+    }
+
+    if (mal_device_start(&device) != MAL_SUCCESS)
+    {
+        printf("Couldn't start mal device\n");
+        mal_device_uninit(&device);
+        mal_context_uninit(&Ctxt);
+        return;
     }
 }
 
@@ -128,7 +247,7 @@ GAME_INIT_GRAPHIC(game_init_graphic)
 {
     djn_memory = memory;
     djn_gfx_init(memory);
-
+    init_audio();
     SetCallbacks(memory);
     
     ImGui::CreateContext();
@@ -164,6 +283,8 @@ void djn_game_debug_menu(Memory* memory)
     ImGui::EndMainMenuBar();
 
     ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
+    ImGui::InputInt("Freq", &pitch_index, 1, 12);
+    pitch_index %= NUM_NOTES;
     //ImGui::Text("Samples : %d", device.)
 }
 
