@@ -48,7 +48,7 @@ game_code_data LoadGameCode()
     Result.lastWriteTime = Win32GetLastWirteTime(dll_name);
 	if (!CopyFileA(dll_name, dll_temp_name, false))
 	{
-		printf("=== Couldn't copy file ! ===\n");
+		printf("=== Couldn't copy file ! %d ===\n", GetLastError());
 	}
     Result.lib_handle = LoadLibraryA(dll_temp_name);
     
@@ -192,13 +192,29 @@ int main(int argc, char* args[])
                 
         if (CompareFileTime(&currentFileTime, &code_data.lastWriteTime) > 0)
         {
-            code_data.game_unload_graphic(memory_ptr);
+            // Check if we can open the dll
+            bool canOpen = false;
+            {
+                HANDLE fh;
+                fh = CreateFile("game.dll", GENERIC_WRITE | GENERIC_READ, 0 , NULL, OPEN_EXISTING, 0, NULL);
+                if ((fh != NULL) && (fh != INVALID_HANDLE_VALUE))
+                {
+                    canOpen = true;
+                    CloseHandle(fh);
+                }
+            }
+            
+            if (canOpen)
+            {
+                code_data.game_unload_graphic(memory_ptr);
 
-            UnloadGameCode(code_data);
-            code_data = LoadGameCode();
-            code_data.lastWriteTime = currentFileTime;
+                UnloadGameCode(code_data);
+                code_data = LoadGameCode();
+                code_data.lastWriteTime = currentFileTime;
 
-            code_data.game_init_graphic(memory_ptr);
+                code_data.game_init_graphic(memory_ptr);
+            }
+
         }
 #endif
 
