@@ -85,8 +85,8 @@ uint32_t sample_pos = 0;
 int32_t pitch_index = 25;
 #define SAMPLE_RATE 44100
 
-#define NUM_NOTES 256
-static int pitch[88];
+#define NUM_NOTES 88
+static int pitch[NUM_NOTES];
 
 
 float samples[]
@@ -245,16 +245,19 @@ void init_audio()
 
 GAME_INIT_GRAPHIC(game_init_graphic)
 {
+
+
     djn_memory = memory;
     djn_gfx_init(memory);
-    init_audio();
-    SetCallbacks(memory);
-    
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
 
+    ImGui::CreateContext();
     ImGui_ImplOpenGL3_Init("#version 100");
     ImGui::StyleColorsDark();
+
+
+    init_audio();
+    SetCallbacks(memory);
+
 }
 
 void djn_game_debug_menu(Memory* memory)
