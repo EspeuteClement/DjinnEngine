@@ -2,10 +2,12 @@
 
 echo %time%
 
-set GAME_NAME = win32_platform
+set GAME_NAME=win32_platform
 
 rem === Common Stuff ===
 set COMMON_FLAGS=/Zi /INCREMENTAL:NO -FC /nologo
+    rem force single non virtual inheritance
+    set COMMON_FLAGS=%COMMON_FLAGS% /vms
 set COMMON_LINK=/INCREMENTAL:NO
 
 rem == DLL Config ===
