@@ -121,7 +121,10 @@ void djn_gfx_init(Memory* memory)
         pack_final data;
         pack_open("data/pack.dat", data, "r");
 
-        data.pack_data_buffer = &(memory->graph.data[0]);
+        //data.pack_data_buffer = &(memory->graph.data[0]);
+        
+        // @TODO : Allocation in Frame Allocation
+        data.pack_data_buffer = (pack_data*) malloc(data.num_images * sizeof(pack_data));
         data.pack_name_buffer = (pack_name*) malloc(data.num_images * sizeof(pack_name));
 
         pack_read(data);
@@ -129,7 +132,31 @@ void djn_gfx_init(Memory* memory)
         //int index = pack_find("Hector1.png", data.pack_name_buffer, data.num_images);
         //memory->graph.test_image_data = data.pack_data_buffer[index];
 
+        // Tranform packed data into usable data
+        uint32_t count = data.num_images;
+        for (int current_image_index = count; current_image_index < count; ++current_image_index)
+        {
+            pack_data & packed = data.pack_data_buffer[current_image_index];
+            djn_quad  & quad = memory->graph.data[current_image_index];
+
+            quad.offset.x = packed.ox;
+            quad.offset.y = packed.oy;
+
+            quad.originalSize.x = packed.ow;
+            quad.originalSize.y = packed.oh;
+
+            quad.uv[0].x        = (float) (packed.q.u1)  / (packed.ow);
+            quad.uv[0].y        = (float) (packed.q.v1)  / (packed.oh);
+            quad.uv[1].x        = (float) (packed.q.u2)  / (packed.ow);
+            quad.uv[1].y        = (float) (packed.q.v2)  / (packed.oh);
+
+            quad.uvSize.x = quad.uv[1].x - quad.uv[0].x;
+            quad.uvSize.y = quad.uv[1].y - quad.uv[0].y;
+
+        }
+
         pack_close(data);
+        free(data.pack_data_buffer);
         free(data.pack_name_buffer);
     }
 
@@ -197,9 +224,9 @@ void push_quad(float x, float y, float w, float h, float ox, float oy, float ow,
 void push_sprite(int id, float x, float y, float scale_w = 1.0f, float scale_h = 1.0f)
 {
     
-    pack_data & d = djn_memory->graph.data[id];
+    djn_quad & d = djn_memory->graph.data[id];
 
-    push_quad(x+d.ox,y+d.oy, (d.q.u2 - d.q.u1) * scale_w, (d.q.v2 - d.q.v1) * scale_h, d.q.u1, d.q.v1, d.q.u2, d.q.v2);
+    push_quad(x+d.offset.x,y+d.offset.y, d.uvSize.x, d.uvSize.y * scale_h, d.uv[0].x, d.uv[0].y, d.uv[1].x, d.uv[1].y);
 }
 
 void djn_gfx_setup_view(Memory* memory)
@@ -244,10 +271,25 @@ void djn_gfx_end(Memory* memory)
 bool is_init = false;
 void djn_gfx_draw_all(Memory* memory)
 {
-    djn_gfx_begin(memory);
+    //djn_gfx_begin(memory);
     
-    
-    push_sprite((memory->x++/4)%221, 64,64);
+    if (!is_init)
+    {
+        if (memory->x % 1 == 0)
+        {
+            vertex_data.count = 0;
+            for (uint32_t i = 0; i < FACTOR; i++)
+            {
+                push_sprite(((i*871+(i/64)*147))%200, (i%64) * 16,(i/64) * 16);
+            }
+        }
+
+        //glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW); 
+
+        is_init = false;
+    }
+
+    //push_sprite((memory->x++/4)%221, 64,64);
 
     djn_gfx_end(memory);
 }

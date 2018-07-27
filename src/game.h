@@ -1,5 +1,6 @@
 #pragma once
 #include "tools/djinn_pack_api.h"
+#include "graph.h"
 
 #include <cstdint>
 typedef int32_t s32;
@@ -42,7 +43,7 @@ struct Graph
     int img_height;
     unsigned char texture[DJN_TEXTURE_SIZE];
 
-    pack_data data[IMAGE_DATA_MAX];
+    djn_quad data[IMAGE_DATA_MAX];
 };
 
 struct Memory
