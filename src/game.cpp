@@ -255,7 +255,7 @@ GAME_INIT_GRAPHIC(game_init_graphic)
     ImGui::StyleColorsDark();
 
 
-    init_audio();
+    //init_audio();
     SetCallbacks(memory);
 
 }

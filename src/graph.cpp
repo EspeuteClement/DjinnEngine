@@ -43,7 +43,7 @@ static const char* vertex_shader_text =
 "varying vec3 color;\n"
 "void main()\n"
 "{\n"
-"    texcoord = vTexCoord/uTexSize;\n"
+"    texcoord = vTexCoord;\n"
 "    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
 "    color = vCol;\n"
 "}\n";
@@ -134,7 +134,7 @@ void djn_gfx_init(Memory* memory)
 
         // Tranform packed data into usable data
         uint32_t count = data.num_images;
-        for (int current_image_index = count; current_image_index < count; ++current_image_index)
+        for (int current_image_index = 0; current_image_index < count; ++current_image_index)
         {
             pack_data & packed = data.pack_data_buffer[current_image_index];
             djn_quad  & quad = memory->graph.data[current_image_index];
@@ -145,13 +145,13 @@ void djn_gfx_init(Memory* memory)
             quad.originalSize.x = packed.ow;
             quad.originalSize.y = packed.oh;
 
-            quad.uv[0].x        = (float) (packed.q.u1)  / (packed.ow);
-            quad.uv[0].y        = (float) (packed.q.v1)  / (packed.oh);
-            quad.uv[1].x        = (float) (packed.q.u2)  / (packed.ow);
-            quad.uv[1].y        = (float) (packed.q.v2)  / (packed.oh);
+            quad.uv[0].x        = (float) (packed.q.u1)  / (float) (memory->graph.img_width);
+            quad.uv[0].y        = (float) (packed.q.v1)  / (float) (memory->graph.img_height);
+            quad.uv[1].x        = (float) (packed.q.u2)  / (float) (memory->graph.img_width);
+            quad.uv[1].y        = (float) (packed.q.v2)  / (float) (memory->graph.img_height);
 
-            quad.uvSize.x = quad.uv[1].x - quad.uv[0].x;
-            quad.uvSize.y = quad.uv[1].y - quad.uv[0].y;
+            quad.quadSize.x = packed.q.u2 - packed.q.u1;
+            quad.quadSize.y = packed.q.v2 - packed.q.v1;
 
         }
 
@@ -226,7 +226,7 @@ void push_sprite(int id, float x, float y, float scale_w = 1.0f, float scale_h =
     
     djn_quad & d = djn_memory->graph.data[id];
 
-    push_quad(x+d.offset.x,y+d.offset.y, d.uvSize.x, d.uvSize.y * scale_h, d.uv[0].x, d.uv[0].y, d.uv[1].x, d.uv[1].y);
+    push_quad(x+d.offset.x,y+d.offset.y, d.quadSize.x, d.quadSize.y * scale_h, d.uv[0].x, d.uv[0].y, d.uv[1].x, d.uv[1].y);
 }
 
 void djn_gfx_setup_view(Memory* memory)

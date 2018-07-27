@@ -32,6 +32,6 @@ struct djn_quad
 {
     vec2u16 offset;
     vec2u16 originalSize;
+    vec2u16 quadSize;
     vec2f uv[2];
-    vec2f uvSize;
 };
