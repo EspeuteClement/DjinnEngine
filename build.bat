@@ -19,6 +19,9 @@ set LIBS=Gdi32.lib kernel32.lib user32.lib Shell32.lib Winmm.lib
 set EXE_NAME=%GAME_NAME%.exe
 
 IF NOT EXIST %~dp0build mkdir %~dp0build
+IF NOT EXIST %~dp0build/data mkdir %~dp0build/data
+call build.data.bat
+
 pushd %~dp0build
 IF NOT EXIST tmp mkdir tmp
 

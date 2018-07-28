@@ -70,7 +70,7 @@ GLuint vertex_shader, fragment_shader, program;
 GLuint tex;
 GLint mvp_location;
 
-#define FACTOR 100000
+#define FACTOR 6000
 #define MAX_VERTEX FACTOR*7
 struct
 {
