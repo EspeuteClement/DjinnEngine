@@ -8,13 +8,20 @@
 extern "C" {
 #endif
 
-#define UGL_STORE(name) UGL_HANDLE(name) name;
-UGL_FUNCTIONS(UGL_STORE)
+// Function true storage
+#define _TYPEDECL(x)
+#define _FUNCNAME(name) UGL_HANDLE(name) name
+#define _PARAMS(x)
+#include "ugl.incl"
 
-#define UGL_LOAD(name) name = (UGL_HANDLE(name)) proc(#name);
 int uGlLoadGL(uGlLoadProc proc)
 {
-    UGL_FUNCTIONS(UGL_LOAD)
+    // Load function
+    #define _TYPEDECL(x)
+    #define _FUNCNAME(name) name = (UGL_HANDLE(name)) proc(#name)
+    #define _PARAMS(x)
+    #include "ugl.incl"
+
     return 0;
 }
 

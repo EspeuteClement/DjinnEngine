@@ -1,0 +1,75 @@
+#if !defined(_TYPEDECL) || !defined(_FUNCNAME) || !defined(_PARAMS)
+#error "You need to define _TYPEDECL, _FUNCNAME and _PARAMS before including this file."
+#endif
+
+#define _T _TYPEDECL
+#define _F _FUNCNAME
+#define _P _PARAMS
+    
+_T(void         )   _F( glGenBuffers                )   _P(( GLsizei n, GLuint *buffers));
+_T(void         )   _F( glBindBuffer                )   _P(( GLenum target, GLuint buffer));
+_T(void         )   _F( glBufferData                )   _P(( GLenum target, GLsizeiptr size, const GLvoid * data, GLenum usage));
+_T(GLuint       )   _F( glCreateShader              )   _P(( GLenum shaderType));
+_T(void         )   _F( glShaderSource              )   _P(( GLuint shader,GLsizei count,const GLchar **string, const GLint *length));
+_T(GLuint       )   _F( glCreateProgram             )   _P(( void));
+_T(void         )   _F( glAttachShader              )   _P(( GLuint program, GLuint shader));
+_T(void         )   _F( glCompileShader             )   _P(( GLuint shader));
+_T(void         )   _F( glLinkProgram               )   _P(( GLuint program));
+_T(GLint        )   _F( glGetUniformLocation        )   _P(( GLuint program, const GLchar *name));
+_T(GLint        )   _F( glGetAttribLocation         )   _P(( GLuint program, const GLchar *name));
+_T(void         )   _F( glEnableVertexAttribArray   )   _P(( GLuint index));
+_T(void         )   _F( glDisableVertexAttribArray  )   _P(( GLuint index));
+_T(void         )   _F( glVertexAttribPointer       )   _P(( GLuint index, GLint size, GLenum type, GLboolean normalized, GLsizei stride, const GLvoid * pointer));
+_T(void         )   _F( glViewport                  )   _P(( GLint x, GLint y, GLsizei width, GLsizei height));
+_T(void         )   _F( glClear                     )   _P(( GLbitfield mask));
+_T(void         )   _F( glUseProgram                )   _P(( GLuint program));
+_T(void         )   _F( glUniformMatrix4fv          )   _P(( GLint location, GLsizei count, GLboolean transpose, const GLfloat *value));
+_T(void         )   _F( glDrawArrays                )   _P(( GLenum mode, GLint first, GLsizei count));
+_T(void         )   _F( glGetShaderiv               )   _P(( GLuint shader,  GLenum pname,  GLint *params));
+_T(void         )   _F( glGetShaderInfoLog          )   _P(( GLuint shader,GLsizei maxLength,GLsizei *length,GLchar *infoLog));
+_T(void         )   _F( glDeleteShader              )   _P(( GLuint shader));
+_T(void         )   _F( glGenTextures               )   _P(( GLsizei n,  GLuint * textures));
+_T(void         )   _F( glBindTexture               )   _P(( GLenum target,  GLuint texture));
+_T(void         )   _F( glTexParameteri             )   _P(( GLenum target,  GLenum pname,  GLint param));
+_T(void         )   _F( glTexImage2D                )   _P(( GLenum target,  GLint level,  GLint internalformat,  GLsizei width,  GLsizei height,  GLint border,  GLenum format,  GLenum type,  const GLvoid * data));
+_T(void         )   _F( glEnable                    )   _P(( GLenum  cap));
+_T(void         )   _F( glDisable                   )   _P(( GLenum  cap));
+_T(GLboolean    )   _F( glIsEnabled                 )   _P(( GLenum cap));
+_T(void         )   _F( glBlendEquation             )   _P(( GLenum mode));
+_T(void         )   _F( glBlendFunc                 )   _P(( GLenum sfactor, GLenum dfactor));
+_T(void         )   _F( glGetIntegerv               )   _P(( GLenum pname,  GLint * params));
+_T(void         )   _F( glActiveTexture             )   _P(( GLenum texture));
+_T(void         )   _F( glPolygonMode               )   _P(( GLenum face, GLenum mode)); 
+_T(void         )   _F( glUniform1i                 )   _P(( GLint location, GLint v0));
+_T(void         )   _F( glBindSampler               )   _P(( GLuint unit, GLuint sampler));
+_T(void         )   _F( glGenVertexArrays           )   _P(( GLsizei n, GLuint *arrays));
+_T(void         )   _F( glBindVertexArray           )   _P(( GLuint array));
+_T(void         )   _F( glScissor                   )   _P(( GLint x,  GLint y,  GLsizei width,  GLsizei height));
+_T(void         )   _F( glDrawElements              )   _P(( GLenum mode, GLsizei count, GLenum type, const GLvoid * indices));
+_T(void         )   _F( glDeleteVertexArrays        )   _P(( GLsizei n, const GLuint *arrays));
+_T(void         )   _F( glBlendEquationSeparate     )   _P(( GLenum modeRGB, GLenum modeAlpha));
+_T(void         )   _F( glBlendFuncSeparate         )   _P(( GLenum srcRGB,  GLenum dstRGB,  GLenum srcAlpha,  GLenum dstAlpha));
+_T(void         )   _F( glPixelStorei               )   _P(( GLenum pname,  GLint param));
+_T(void         )   _F( glDeleteTextures            )   _P(( GLsizei n,  const GLuint * textures));
+_T(void         )   _F( glGetProgramiv              )   _P(( GLuint program,  GLenum pname,  GLint *params));
+_T(void         )   _F( glGetProgramInfoLog         )   _P(( GLuint program,  GLsizei maxLength,  GLsizei *length,  GLchar *infoLog));
+_T(void         )   _F( glDeleteProgram             )   _P(( GLuint program));
+_T(void         )   _F( glDetachShader              )   _P(( GLuint program, GLuint shader));
+_T(void         )   _F( glDeleteBuffers             )   _P(( GLsizei n, const GLuint * buffers));
+_T(void         )   _F( glUniform2f                 )   _P(( GLint location, GLfloat v0, GLfloat v1));
+_T(void         )   _F( glAlphaFunc                 )   _P(( GLenum func,  GLclampf ref));
+_T(void         )   _F( glDepthFunc                 )   _P(( GLenum func));
+_T(void         )   _F( glGenFramebuffers           )   _P(( GLsizei n, GLuint *id));
+_T(void         )   _F( glBindFramebuffer           )   _P(( GLenum target,GLuint framebuffer));
+_T(void         )   _F( glGenRenderbuffers          )   _P(( GLsizei n,  GLuint * renderbuffers));
+_T(void         )   _F( glBindRenderbuffer          )   _P(( GLenum target,  GLuint renderbuffer));
+_T(void         )   _F( glRenderbufferStorage       )   _P(( GLenum target,  GLenum internalformat,  GLsizei width,  GLsizei height));
+_T(void         )   _F( glFramebufferRenderbuffer   )   _P(( GLenum target,  GLenum attachment,  GLenum renderbuffertarget,  GLuint renderbuffer));
+_T(void         )   _F( glFramebufferTexture        )   _P(( GLenum target,GLenum attachment,GLuint texture,GLint level));
+
+#undef _T
+#undef _F
+#undef _P
+#undef _TYPEDECL
+#undef _FUNCNAME
+#undef _PARAMS
