@@ -1,6 +1,8 @@
 #include "ugl.h"
 
 #include <cstdio>
+#include <cstdio>
+#include <cstdlib>
 
 #ifdef __cplusplus
 extern "C" {
@@ -51,6 +53,49 @@ uGLAPI GLuint uGl_LoadProgram(const GLchar * source_vertex, const GLchar * sourc
     glLinkProgram(program);
 
     return program;
+}
+
+// Don't forget to free the returned string
+char * load_file(const char * file_path)
+{
+    char * buffer = nullptr;
+    long length;
+    FILE * f = fopen (file_path, "rb");
+
+    if (f)
+    {
+      fseek (f, 0, SEEK_END);
+      length = ftell (f);
+      fseek (f, 0, SEEK_SET);
+      buffer = (char*) malloc (length+1);
+      if (buffer)
+      {
+        fread (buffer, 1, length, f);
+        buffer[length] = 0;
+      }
+      fclose (f);
+    }
+
+    return buffer;
+} 
+
+uGLAPI GLuint uGl_LoadProgram_File(const char * source_vertex_file, const char * source_fragment_file)
+{
+    char const * source_vertex = load_file(source_vertex_file);
+    char const * source_fragment = load_file(source_fragment_file);
+    GLuint programId;
+    if (source_vertex && source_fragment)
+    {
+        programId = uGl_LoadProgram(source_vertex, source_fragment);
+    } 
+
+    if (source_vertex)
+        free((void*)source_vertex);
+
+    if (source_fragment)
+        free((void*)source_fragment);
+
+    return programId;
 }
 
 #ifdef __cplusplus

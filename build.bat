@@ -24,7 +24,7 @@ IF NOT EXIST tmp mkdir tmp
 
 del /Q *.pdb > NUL 2> NUL
 @echo on
-cl %DLL_FLAGS% %DLL_SOURCES% /link %COMMON_LINK% /PDB:game.%random%.pdb
+cl /D_GLFW_WIN32 %DLL_FLAGS% %DLL_SOURCES% /link %COMMON_LINK% /PDB:game.%random%.pdb
 @echo === Finished building game.dll at %time%
 cl /Fe%EXE_NAME% %COMMON_FLAGS%  /D_GLFW_WIN32 ../src/win32_platform.cpp ../src/external/external.all.c %LIBS% /link %COMMON_LINK% /PDB:%GAME_NAME%.%random%.pdb
 @echo off

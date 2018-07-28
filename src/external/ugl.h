@@ -27,6 +27,7 @@ typedef void GLvoid;
 typedef unsigned char GLboolean;
 typedef unsigned int GLbitfield;
 typedef float GLfloat;
+typedef float GLclampf;
 
 // Opengl Constants
 
@@ -115,6 +116,11 @@ typedef float GLfloat;
 #define GL_UNSIGNED_INT 0x1405
 #define GL_LINEAR 0x2601
 #define GL_UNPACK_ROW_LENGTH 0x0CF2
+#define GL_ALPHA_TEST 0x0BC0
+
+
+#define GL_GREATER 0x0204
+
 
 
 #define GL_FRONT_AND_BACK 0x0408
@@ -197,6 +203,9 @@ typedef void        (GL_API UGL_HANDLE( glDeleteProgram             )) ( GLuint 
 typedef void        (GL_API UGL_HANDLE( glDetachShader              )) ( GLuint program, GLuint shader);
 typedef void        (GL_API UGL_HANDLE( glDeleteBuffers             )) ( GLsizei n, const GLuint * buffers);
 typedef void        (GL_API UGL_HANDLE( glUniform2f                 )) ( GLint location, GLfloat v0, GLfloat v1);
+typedef void        (GL_API UGL_HANDLE( glAlphaFunc                 )) ( GLenum func,  GLclampf ref);
+typedef void        (GL_API UGL_HANDLE( glDepthFunc                 )) ( GLenum func);
+
 
 // Used to get all the functions using various macros
 #define UGL_FUNCTIONS(OP) \
@@ -251,6 +260,8 @@ typedef void        (GL_API UGL_HANDLE( glUniform2f                 )) ( GLint l
         OP(glDetachShader               )\
         OP(glDeleteBuffers              )\
         OP(glUniform2f                  )\
+        OP(glAlphaFunc                  )\
+        OP(glDepthFunc                  )\
 
 
 // Context (store it somewhere)
@@ -269,6 +280,8 @@ uGLAPI int uGlLoadGL(uGlLoadProc proc);
 uGLAPI GLuint uGl_LoadShader(GLenum type, const GLchar * source);
 
 uGLAPI GLuint uGl_LoadProgram(const GLchar * source_vertex, const GLchar * source_fragment);
+
+uGLAPI GLuint uGl_LoadProgram_File(const char * source_vertex_file, const char * source_fragment_file);
 
 #ifdef __cplusplus
 }
