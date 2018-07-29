@@ -34,6 +34,7 @@ struct PlayerInput
 
 enum djnKey
 {
+    djnKey_NONE     = 0,
     djnKey_UP       = 1 << 0,
     djnKey_LEFT     = 1 << 1,
     djnKey_DOWN     = 1 << 2,
@@ -68,8 +69,32 @@ struct Input
 
     inline bool key(u8 player, u8 key) 
     {
-        return inputs[player][currentHistoryFrame].Keyflags | 1 << key; 
+        return inputs[player][currentHistoryFrame].Keyflags & key; 
     };
+
+    inline void _int_set_key(u8 player, u8 key)
+    {
+        inputs[player][currentHistoryFrame].Keyflags |= key;
+    };
+
+    inline void _int_new_frame()
+    {
+        currentHistoryFrame = (currentHistoryFrame + 1) % MAX_INPUT_HISTORY;
+        for (int player_id = 0; player_id < MAX_NUM_PLAYERS; ++player_id)
+        {
+            inputs[player_id][currentHistoryFrame].Keyflags = 0;
+        }
+
+        mouse_x = 0;
+        mouse_y = 0;
+        for (int i = 0; i < sizeof(mouse_btn) / sizeof(mouse_btn[0]); i++)
+        {
+            mouse_btn[i] = 0; 
+        }
+
+        float mouse_sx = 0.0f;
+        float mouse_sy = 0.0f;
+    }
 };
 
 

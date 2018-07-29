@@ -305,16 +305,57 @@ void djn_game_debug_menu(Memory* memory)
 {
     djn_game_menu_bar(memory);
 
+
+    ImGui::Begin("Inputs");
+    ImGui::Text("%d", memory->input.currentHistoryFrame);
+
+    ImGui::Text("U L D R");
+    for (int i = 0; i < MAX_INPUT_HISTORY; ++i)
+    {
+        int id = (memory->input.currentHistoryFrame - i + MAX_INPUT_HISTORY) % MAX_INPUT_HISTORY;
+        u32 key = memory->input.inputs[0][id].Keyflags;
+        ImGui::Text("%d %d %d %d"   , (key & djnKey::djnKey_UP) != 0
+                                    , (key & djnKey::djnKey_LEFT) != 0
+                                    , (key & djnKey::djnKey_DOWN) != 0
+                                    , (key & djnKey::djnKey_RIGHT) != 0);
+    }
+
+    ImGui::End();
+
 /*    ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
     ImGui::InputInt("Freq", &pitch_index, 1, 12);
     pitch_index %= NUM_NOTES;*/
     //ImGui::Text("Samples : %d", device.)
 }
 
+bool djn_key(u8 player, djnKey key)
+{
+    return djn_memory->input.key(player, key);
+}
+
 GAME_LOOP(game_loop)
 {
     djn_memory = memory;
     djn_game_imgui_begin();
+
+    if (djn_key(0, djnKey_RIGHT))
+    {
+        memory->x ++;    
+    }
+    if (djn_key(0, djnKey_LEFT))
+    {
+        memory->x --;    
+    }
+
+    if (djn_key(0, djnKey_UP))
+    {
+        memory->y --;    
+    }
+    if (djn_key(0, djnKey_DOWN))
+    {
+        memory->y ++;    
+    }
+
 
     djn_gfx_draw_all(memory);
     djn_game_debug_menu(memory);

@@ -86,10 +86,61 @@ void CharFunc(GLFWwindow* window, unsigned int c)
         memory_ptr->OnCharInputCallback(c);
 }
 
+
+// indexing system
+
+struct InputMapping
+{
+    s8 player;
+    u16 glfw_key;
+    djnKey djn_key;
+};
+
+InputMapping input_mappings[] =
+{
+    {0  ,GLFW_KEY_UP,       djnKey::djnKey_UP},
+    {0  ,GLFW_KEY_LEFT,     djnKey::djnKey_LEFT},
+    {0  ,GLFW_KEY_DOWN,     djnKey::djnKey_DOWN},
+    {0  ,GLFW_KEY_RIGHT,    djnKey::djnKey_RIGHT},
+    {0  ,GLFW_KEY_SPACE,    djnKey::djnKey_START},
+    {0  ,GLFW_KEY_X,        djnKey::djnKey_1},
+    {0  ,GLFW_KEY_C,        djnKey::djnKey_2},
+    {0  ,GLFW_KEY_V,        djnKey::djnKey_3},
+    {-1  ,0,               djnKey::djnKey_NONE}
+};
+
+
+#if 0
+void init_input_mapping()
+{
+    input_mappings = (djnKey*) calloc(1, sizeof(djnKey) * MAX_NUM_PLAYERS * GLFW_KEY_LAST);
+
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_UP]      = djnKey::djnKey_UP;
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_LEFT]    = djnKey::djnKey_LEFT;
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_DOWN]    = djnKey::djnKey_DOWN;
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_RIGHT]   = djnKey::djnKey_RIGHT;
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_X]       = djnKey::djnKey_1;
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_C]       = djnKey::djnKey_2;
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_V]       = djnKey::djnKey_3;
+    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_SPACE]   = djnKey::djnKey_START;
+}
+
+void deinit_input_mapping()
+{
+    free(input_mappings);
+}
+#endif
+
 void KeyFunc(GLFWwindow*, int key, int, int action, int mods)
 {
     if (memory_ptr->OnKeyCallback)
         memory_ptr->OnKeyCallback(key, action, mods);
+
+    // Simple key input 
+/*    for (int player_id = 0; player_id < MAX_NUM_PLAYERS; ++player_id)
+    {
+        memory_ptr->input._int_set_key(player_id, input_mappings[player_id * GLFW_KEY_LAST + key]);
+    }*/
 }
 
 void init_memory()
@@ -161,11 +212,17 @@ int main(int argc, char* args[])
     init_glfw();
     init_game();
 
+/*    init_input_mapping();*/
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         uint64_t start_time = djn::get_time_micro(); 
 
+        // Reset input :
+        memory_ptr->input._int_new_frame();
+
+        glfwPollEvents();
         // Update inputs :
         {
             if (glfwGetWindowAttrib(window, GLFW_FOCUSED))
@@ -174,6 +231,16 @@ int main(int argc, char* args[])
                 glfwGetCursorPos(window, &x, &y);
                 memory_ptr->input.mouse_x = x;
                 memory_ptr->input.mouse_y = y;
+
+                for (int entry = 0; input_mappings[entry].player != -1; ++entry)
+                {
+                    InputMapping &m = input_mappings[entry];
+                    if (glfwGetKey(window, m.glfw_key))
+                    {
+                        memory_ptr->input._int_set_key(m.player, m.djn_key);
+                    }
+                    
+                }
 
                 for (int i = 0; i < 5; i++)
                 {
@@ -239,15 +306,15 @@ int main(int argc, char* args[])
         /* Swap front and back buffers */
         glfwSwapBuffers(window);        
 
-        memset(&memory_ptr->input, 0, sizeof(memory_ptr->input));
+        //memset(&memory_ptr->input, 0, sizeof(memory_ptr->input));
         /* Poll for and process events */
-        glfwPollEvents();
 
         uint64_t end_time = djn::get_time_micro();
         
         AddDebugFrame(&memory_ptr->debug, (end_time - start_time)/1000.0f);
     }
 
+/*    deinit_input_mapping();*/
     glfwTerminate();
     return 0;
 }

@@ -285,8 +285,6 @@ void djn_gfx_setup_view(Memory* memory)
    //mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
    //mat4x4_scale_aniso(m,m,memory->screen_width/400,memory->screen_height/300,1);
 
-    memory->x ++;
-
     mat4x4_ortho(p, 0, TARGET_WIDTH, TARGET_HEIGHT, 0, 0, 1.f);
     mat4x4_mul(mvp, p, m);
     glUseProgram(program);
@@ -341,7 +339,7 @@ void djn_gfx_draw_all(Memory* memory)
 {
     djn_gfx_begin(memory);
 
-    push_sprite((memory->x++/8)%8 + 180, 0,0);
+    push_sprite(0, memory->x,memory->y);
 
     djn_gfx_end(memory);
 }
