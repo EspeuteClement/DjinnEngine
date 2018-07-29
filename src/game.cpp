@@ -340,7 +340,7 @@ GAME_LOOP(game_loop)
     djn_game_imgui_begin();
 
     GameMemory* mem = djn_memory();
-    int speed = 2;
+    int speed = 4;
     if (djn_key(0, djnKey_RIGHT))
     {
         mem->x += speed;    

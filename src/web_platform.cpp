@@ -37,7 +37,9 @@ int main(void)
 
 
     game_data.proc = (void*)glfwGetProcAddress;
-    GAME_INIT(&game_data);
+
+    game_data.memory_size = sizeof(GameData);
+    game_init(&game_data);
 
 
     emscripten_set_main_loop(&renderFrame,0,1);
