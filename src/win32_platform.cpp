@@ -110,38 +110,10 @@ InputMapping input_mappings[] =
     {-1  ,0,               djnKey::djnKey_NONE}
 };
 
-
-#if 0
-void init_input_mapping()
-{
-    input_mappings = (djnKey*) calloc(1, sizeof(djnKey) * MAX_NUM_PLAYERS * GLFW_KEY_LAST);
-
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_UP]      = djnKey::djnKey_UP;
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_LEFT]    = djnKey::djnKey_LEFT;
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_DOWN]    = djnKey::djnKey_DOWN;
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_RIGHT]   = djnKey::djnKey_RIGHT;
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_X]       = djnKey::djnKey_1;
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_C]       = djnKey::djnKey_2;
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_V]       = djnKey::djnKey_3;
-    input_mappings[0 * GLFW_KEY_LAST    + GLFW_KEY_SPACE]   = djnKey::djnKey_START;
-}
-
-void deinit_input_mapping()
-{
-    free(input_mappings);
-}
-#endif
-
 void KeyFunc(GLFWwindow*, int key, int, int action, int mods)
 {
     if (game_data_ptr->OnKeyCallback)
         game_data_ptr->OnKeyCallback(key, action, mods);
-
-    // Simple key input 
-/*    for (int player_id = 0; player_id < MAX_NUM_PLAYERS; ++player_id)
-    {
-        game_data_ptr->djn_memory.input._int_set_key(player_id, input_mappings[player_id * GLFW_KEY_LAST + key]);
-    }*/
 }
 
 void init_memory()
@@ -249,7 +221,6 @@ void memory_record_start()
     {
          memset(record->inputs[i], 0, sizeof(PlayerInput) * MAX_RECORDING_INPUTS);
     }
-   
 
     memcpy((void*)&record->game_memory, &game_data_ptr->djn_memory, sizeof(GameMemory));
 
@@ -425,7 +396,6 @@ int main(int argc, char* args[])
         AddDebugFrame(&game_data_ptr->debug, (end_time - start_time)/1000.0f);
     }
 
-/*    deinit_input_mapping();*/
     glfwTerminate();
     return 0;
 }
