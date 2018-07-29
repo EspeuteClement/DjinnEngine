@@ -54,7 +54,7 @@ static const vertex_struct render_buffer_vertex[6] =
     { TARGET_WIDTH, TARGET_HEIGHT,   1.0f, 1.0f, 1.0f,              1.0f, 0.0f }
 };
 
-void djn_init_image(Memory* memory)
+void djn_init_image(GameData* game_data)
 {
     int n;
     test_image = stbi_load("data/pack.png", &(graph->img_width),&(graph->img_height),&n, 4);
@@ -104,13 +104,15 @@ void djn_init_image(Memory* memory)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (graph->img_width),(graph->img_height), 0, GL_RGBA, GL_UNSIGNED_BYTE, test_image);
+
+    stbi_image_free(test_image);
 }
 
-void djn_init_opengl(Memory* memory)
+void djn_init_opengl(GameData* game_data)
 {
-    if (memory->proc)
+    if (game_data->proc)
     {
-        uGlLoadGL((uGlLoadProc)memory->proc);
+        uGlLoadGL((uGlLoadProc)game_data->proc);
     }
     
     vertex_data.count = 0;
@@ -186,16 +188,17 @@ void djn_init_opengl(Memory* memory)
                           sizeof(float) * 7, (void*) (sizeof(float) * 5));
 }
 
-void djn_gfx_init(Memory* memory)
+void djn_gfx_init(GameData* game_data)
 {
     graph = (Graph*) malloc(sizeof(Graph));
-    djn_init_opengl(memory);
-    djn_init_image(memory);
+    djn_init_opengl(game_data);
+    djn_init_image(game_data);
 }
 
-void djn_gfx_deinit(Memory* memory)
+void djn_gfx_deinit(GameData* game_data)
 {
     free(graph);
+    glDeleteProgram(program);
 }
 
 void push_triangle(const vertex_struct& v1, const vertex_struct& v2, const vertex_struct& v3)
@@ -255,7 +258,7 @@ void push_sprite(int id, float x, float y, float scale_w = 1.0f, float scale_h =
     push_quad(x+d.offset.x,y+d.offset.y, d.quadSize.x, d.quadSize.y * scale_h, d.uv[0].x, d.uv[0].y, d.uv[1].x, d.uv[1].y);
 }
 
-void djn_gfx_begin(Memory* memory)
+void djn_gfx_begin(GameData* game_data)
 {
     vertex_data.count = 0;
     glBindVertexArray(vao);
@@ -263,14 +266,14 @@ void djn_gfx_begin(Memory* memory)
 }
 
 
-void djn_gfx_draw_vertex_data(Memory* memory)
+void djn_gfx_draw_vertex_data(GameData* game_data)
 {
     glBindTexture(GL_TEXTURE_2D, tex);
     glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW); 
     glDrawArrays(GL_TRIANGLES, 0, vertex_data.count);
 }
 
-void djn_gfx_setup_view(Memory* memory)
+void djn_gfx_setup_view(GameData* game_data)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     
@@ -287,10 +290,10 @@ void djn_gfx_setup_view(Memory* memory)
 
 
     mat4x4_identity(m);
-   //mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
-   //mat4x4_rotate_Z(m, m, (float) memory->x/50);
-   //mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
-   //mat4x4_scale_aniso(m,m,memory->screen_width/400,memory->screen_height/300,1);
+   //mat4x4_translate(m, game_data->screen_width/2, game_data->screen_height/2, 0);
+   //mat4x4_rotate_Z(m, m, (float) game_data->x/50);
+   //mat4x4_translate_in_place(m, -game_data->screen_width/2, -game_data->screen_height/2, 0);
+   //mat4x4_scale_aniso(m,m,game_data->screen_width/400,game_data->screen_height/300,1);
 
     mat4x4_ortho(p, 0, TARGET_WIDTH, TARGET_HEIGHT, 0, 0, 1.f);
     mat4x4_mul(mvp, p, m);
@@ -298,11 +301,11 @@ void djn_gfx_setup_view(Memory* memory)
     glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
 }
 
-void djn_draw_game_normal(Memory* memory)
+void djn_draw_game_normal(GameData* game_data)
 {
     int height = TARGET_HEIGHT*2;
 
-    glViewport(0, memory->screen_height - height,TARGET_WIDTH*2, height);
+    glViewport(0, game_data->screen_height - height,TARGET_WIDTH*2, height);
     glBindVertexArray(render_buffer_vertex_vao);
     glBindBuffer(GL_ARRAY_BUFFER, render_buffer_vertex_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(render_buffer_vertex), render_buffer_vertex, GL_STATIC_DRAW);
@@ -310,19 +313,19 @@ void djn_draw_game_normal(Memory* memory)
     glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void djn_gfx_end(Memory* memory)
+void djn_gfx_end(GameData* game_data)
 {
-    djn_gfx_setup_view(memory);
-    djn_gfx_draw_vertex_data(memory);
+    djn_gfx_setup_view(game_data);
+    djn_gfx_draw_vertex_data(game_data);
 
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    switch (memory->debug.game_draw_mode)
+    switch (game_data->debug.game_draw_mode)
     {
         case GDM_Normal:
         {
-            djn_draw_game_normal(memory);
+            djn_draw_game_normal(game_data);
             break;
         }
         case GDM_Window:
@@ -342,13 +345,15 @@ void djn_gfx_end(Memory* memory)
 }
 
 bool is_init = false;
-void djn_gfx_draw_all(Memory* memory)
+void djn_gfx_draw_all(GameData* game_data)
 {
-    djn_gfx_begin(memory);
+    djn_gfx_begin(game_data);
 
-    push_sprite(0, memory->x,memory->y);
+    GameMemory* mem = djn_memory();
 
-    djn_gfx_end(memory);
+    push_sprite(0, mem->x,mem->y);
+
+    djn_gfx_end(game_data);
 }
 
 
@@ -364,7 +369,7 @@ void djn_gfx_draw_all(Memory* memory)
 #if 0
     if (!is_init)
     {
-        if (memory->x % 1 == 0)
+        if (game_data->x % 1 == 0)
         {
             vertex_data.count = 0;
             for (uint32_t i = 0; i < FACTOR; i++)

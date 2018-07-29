@@ -10,12 +10,12 @@
 
 #include <cstdio>
 
-Memory memory = {};
+GameData game_data = {};
 
 void renderFrame()
 {
-    glfwGetWindowSize(&memory.screen_width, &memory.screen_height);
-    game_loop(&memory);
+    glfwGetWindowSize(&game_data.screen_width, &game_data.screen_height);
+    game_loop(&game_data);
     glfwSwapBuffers();
 }
 
@@ -36,8 +36,8 @@ int main(void)
     }
 
 
-    memory.proc = (void*)glfwGetProcAddress;
-    GAME_INIT(&memory);
+    game_data.proc = (void*)glfwGetProcAddress;
+    GAME_INIT(&game_data);
 
 
     emscripten_set_main_loop(&renderFrame,0,1);

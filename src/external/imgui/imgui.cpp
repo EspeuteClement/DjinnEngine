@@ -923,7 +923,7 @@ static void             ImeSetInputScreenPosFn_DefaultImpl(int x, int y);
 ImGuiContext*   GImGui = NULL;
 #endif
 
-// Memory Allocator functions. Use SetAllocatorFunctions() to change them.
+// GameData Allocator functions. Use SetAllocatorFunctions() to change them.
 // If you use DLL hotreloading you might need to call SetAllocatorFunctions() after reloading code from this file.
 // Otherwise, you probably don't want to modify them mid-program, and if you use global/static e.g. ImVector<> instances you may need to keep them accessible during program destruction.
 #ifndef IMGUI_DISABLE_DEFAULT_ALLOCATORS
@@ -1610,7 +1610,7 @@ FILE* ImFileOpen(const char* filename, const char* mode)
 }
 
 // Load file content into memory
-// Memory allocated with ImGui::MemAlloc(), must be freed by user using ImGui::MemFree()
+// GameData allocated with ImGui::MemAlloc(), must be freed by user using ImGui::MemFree()
 void* ImFileLoadToMemory(const char* filename, const char* file_open_mode, size_t* out_file_size, int padding_bytes)
 {
     IM_ASSERT(filename && file_open_mode);

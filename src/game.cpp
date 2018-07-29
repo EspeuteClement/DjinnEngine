@@ -11,7 +11,7 @@
 #define MINI_AL_IMPLEMENTATION
 #include "external/mini_al/mini_al.h"
 
-Memory* djn_memory = nullptr;
+GameData* djn_game_data = nullptr;
 
 void OnCharInputCallback(u32 c)
 {
@@ -34,10 +34,10 @@ void OnKeyCallback (int key, int action, int mods)
     io.KeySuper = io.KeysDown[343] || io.KeysDown[347];
 }   
 
-void SetCallbacks(Memory* memory)
+void SetCallbacks(GameData* game_data)
 {
-    memory->OnCharInputCallback = &OnCharInputCallback;
-    memory->OnKeyCallback = &OnKeyCallback;
+    game_data->OnCharInputCallback = &OnCharInputCallback;
+    game_data->OnKeyCallback = &OnKeyCallback;
 }
 
 #include <cmath>
@@ -48,21 +48,21 @@ float volume = 1.0f;
 
 void djn_game_imgui_begin()
 {
-    Memory* memory = djn_memory;
+    GameMemory* mem = djn_memory();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.DisplaySize.x = memory->screen_width;
-    io.DisplaySize.y = memory->screen_height;
+    io.DisplaySize.x = djn_game_data->screen_width;
+    io.DisplaySize.y = djn_game_data->screen_height;
 
-    io.MousePos.x = memory->input.mouse_x;
-    io.MousePos.y = memory->input.mouse_y;
+    io.MousePos.x = mem->input.mouse_x;
+    io.MousePos.y = mem->input.mouse_y;
 
-    io.MouseWheel = memory->input.mouse_sy;
-    io.MouseWheelH = memory->input.mouse_sx;
+    io.MouseWheel = mem->input.mouse_sy;
+    io.MouseWheelH = mem->input.mouse_sx;
 
 
     for (int i = 0; i < 5; i++)
     {
-        io.MouseDown[i] =  memory->input.mouse_btn[i];
+        io.MouseDown[i] =  mem->input.mouse_btn[i];
     } 
 
     ImGui_ImplOpenGL3_NewFrame();
@@ -245,32 +245,32 @@ void init_audio()
 
 GAME_INIT(game_init)
 {
-    if (memory->memory_size != sizeof(Memory))
+    if (game_data->memory_size != sizeof(GameData))
     {
         return djnSta_ERROR_MEMORY;
     }
 
-    djn_memory = memory;
-    djn_gfx_init(memory);
+    djn_game_data = game_data;
+    djn_gfx_init(game_data);
 
     ImGui::CreateContext();
     ImGui_ImplOpenGL3_Init("#version 100");
     ImGui::StyleColorsDark();
 
     //init_audio();
-    SetCallbacks(memory);
+    SetCallbacks(game_data);
 
     return djnSta_OK;
 }
 
-void djn_game_menu_bar(Memory* memory)
+void djn_game_menu_bar(GameData* game_data)
 {
     float mean_fps = 0.0f;
     float min = 100;
     float max = 0;
     for (int i = 0; i < DEBUG_FRAMES_COUNT; i++)
     {
-        float value = memory->debug.lastFrameTimesMs[i]; 
+        float value = game_data->debug.lastFrameTimesMs[i]; 
         mean_fps += value / (float) DEBUG_FRAMES_COUNT;
         min = min > value ? value : min;
         max = max < value ? value : max;
@@ -281,7 +281,7 @@ void djn_game_menu_bar(Memory* memory)
         if(ImGui::IsItemHovered())
         {
             ImGui::BeginTooltip();
-            ImGui::PlotLines("FrameGraph", memory->debug.lastFrameTimesMs, DEBUG_FRAMES_COUNT, memory->debug.currentTimeFrame, 0, 0.0f, 40.0f, ImVec2(300,150));
+            ImGui::PlotLines("FrameGraph", game_data->debug.lastFrameTimesMs, DEBUG_FRAMES_COUNT, game_data->debug.currentTimeFrame, 0, 0.0f, 40.0f, ImVec2(300,150));
             ImGui::Text("min: %04.2f max: %04.2f avg:%04.2f", min, max, mean_fps);
             ImGui::EndTooltip();
         }
@@ -294,26 +294,27 @@ void djn_game_menu_bar(Memory* memory)
                 "GDM_Window"
             };
 
-            ImGui::Combo("Game Draw Mode", (int*) &(memory->debug.game_draw_mode), items, 2, -1);
+            ImGui::Combo("Game Draw Mode", (int*) &(game_data->debug.game_draw_mode), items, 2, -1);
             ImGui::EndMenu();
         }
 
     ImGui::EndMainMenuBar();
 }
 
-void djn_game_debug_menu(Memory* memory)
+void djn_game_debug_menu(GameData* game_data)
 {
-    djn_game_menu_bar(memory);
+    djn_game_menu_bar(game_data);
 
+    GameMemory* mem = djn_memory();
 
     ImGui::Begin("Inputs");
-    ImGui::Text("%d", memory->input.currentHistoryFrame);
+    ImGui::Text("%d", mem->input.currentHistoryFrame);
 
     ImGui::Text("U L D R");
     for (int i = 0; i < MAX_INPUT_HISTORY; ++i)
     {
-        int id = (memory->input.currentHistoryFrame - i + MAX_INPUT_HISTORY) % MAX_INPUT_HISTORY;
-        u32 key = memory->input.inputs[0][id].Keyflags;
+        int id = (mem->input.currentHistoryFrame - i + MAX_INPUT_HISTORY) % MAX_INPUT_HISTORY;
+        u32 key = mem->input.inputs[0][id].Keyflags;
         ImGui::Text("%d %d %d %d"   , (key & djnKey::djnKey_UP) != 0
                                     , (key & djnKey::djnKey_LEFT) != 0
                                     , (key & djnKey::djnKey_DOWN) != 0
@@ -330,36 +331,37 @@ void djn_game_debug_menu(Memory* memory)
 
 bool djn_key(u8 player, djnKey key)
 {
-    return djn_memory->input.key(player, key);
+    return djn_game_data->djn_memory.input.key(player, key);
 }
 
 GAME_LOOP(game_loop)
 {
-    djn_memory = memory;
+    djn_game_data = game_data;
     djn_game_imgui_begin();
 
+    GameMemory* mem = djn_memory();
     int speed = 2;
     if (djn_key(0, djnKey_RIGHT))
     {
-        memory->x += speed;    
+        mem->x += speed;    
     }
     if (djn_key(0, djnKey_LEFT))
     {
-        memory->x -= speed;    
+        mem->x -= speed;    
     }
 
     if (djn_key(0, djnKey_UP))
     {
-        memory->y -= speed;    
+        mem->y -= speed;    
     }
     if (djn_key(0, djnKey_DOWN))
     {
-        memory->y += speed;    
+        mem->y += speed;    
     }
 
 
-    djn_gfx_draw_all(memory);
-    djn_game_debug_menu(memory);
+    djn_gfx_draw_all(game_data);
+    djn_game_debug_menu(game_data);
 
     djn_game_imgui_end();
 }
@@ -373,7 +375,7 @@ GAME_DEINIT(GAME_DEINIT)
     mal_device_uninit(&device);
     mal_decoder_uninit(&decoder);
 
-    djn_gfx_deinit(memory);
+    djn_gfx_deinit(game_data);
     //stbi_image_free(test_image);
     // Do nothing at the moment
 }

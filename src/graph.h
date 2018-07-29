@@ -5,15 +5,15 @@
 // Includes
 #include <cstdint>
 
-struct Memory;
+struct GameData;
 
 // Init all the graphics
-void djn_gfx_init(Memory* mem);
+void djn_gfx_init(GameData* mem);
 
 // Debug function that draw stuff on the screen
-void djn_gfx_draw_all(Memory* mem);
+void djn_gfx_draw_all(GameData* mem);
 
-void djn_gfx_deinit(Memory* memory);
+void djn_gfx_deinit(GameData* game_data);
 
 template <typename T>
 struct djn_vec2

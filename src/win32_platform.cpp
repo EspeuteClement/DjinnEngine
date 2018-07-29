@@ -74,17 +74,17 @@ void UnloadGameCode(game_code_data& data)
 #endif
 }
 
-Memory* memory_ptr;
+GameData* game_data_ptr;
 void ScrollFunc(GLFWwindow* window,double xoffset,double yoffset)
 {
-    memory_ptr->input.mouse_sx = (float)xoffset;
-    memory_ptr->input.mouse_sy = (float)yoffset; 
+    game_data_ptr->djn_memory.input.mouse_sx = (float)xoffset;
+    game_data_ptr->djn_memory.input.mouse_sy = (float)yoffset; 
 }
 
 void CharFunc(GLFWwindow* window, unsigned int c)
 {
-    if (memory_ptr->OnCharInputCallback)
-        memory_ptr->OnCharInputCallback(c);
+    if (game_data_ptr->OnCharInputCallback)
+        game_data_ptr->OnCharInputCallback(c);
 }
 
 
@@ -134,13 +134,13 @@ void deinit_input_mapping()
 
 void KeyFunc(GLFWwindow*, int key, int, int action, int mods)
 {
-    if (memory_ptr->OnKeyCallback)
-        memory_ptr->OnKeyCallback(key, action, mods);
+    if (game_data_ptr->OnKeyCallback)
+        game_data_ptr->OnKeyCallback(key, action, mods);
 
     // Simple key input 
 /*    for (int player_id = 0; player_id < MAX_NUM_PLAYERS; ++player_id)
     {
-        memory_ptr->input._int_set_key(player_id, input_mappings[player_id * GLFW_KEY_LAST + key]);
+        game_data_ptr->djn_memory.input._int_set_key(player_id, input_mappings[player_id * GLFW_KEY_LAST + key]);
     }*/
 }
 
@@ -148,11 +148,11 @@ void init_memory()
 {
     DJN_PERF("init_memory time");
 
-    memory_ptr = (Memory*) malloc(sizeof(Memory));
-    memset(memory_ptr, 0, sizeof(Memory));
-    memory_ptr->memory_size = sizeof(Memory);
+    game_data_ptr = (GameData*) malloc(sizeof(GameData));
+    memset(game_data_ptr, 0, sizeof(GameData));
+    game_data_ptr->memory_size = sizeof(GameData);
 
-    printf("Game memory footprint is %d kb\n", sizeof(Memory) / 1024);
+    printf("Game game_data footprint is %d kb\n", sizeof(GameData) / 1024);
 }
 
 GLFWwindow* window;
@@ -202,8 +202,8 @@ int init_game()
         return(-1);
     }
 
-    memory_ptr->proc = (void*)glfwGetProcAddress;
-    code_data.game_init(memory_ptr);
+    game_data_ptr->proc = (void*)glfwGetProcAddress;
+    code_data.game_init(game_data_ptr);
 
     return 1;
 }
@@ -223,7 +223,7 @@ enum RecordStatus
 
 struct GameRecord
 {
-    Memory memory;
+    GameMemory game_memory;
     RecordStatus status;
     s32 currentInputFrame;
     s32 maxInputFrame;
@@ -251,7 +251,7 @@ void memory_record_start()
     }
    
 
-    memcpy((void*)&record->memory, memory_ptr, sizeof(Memory));
+    memcpy((void*)&record->game_memory, &game_data_ptr->djn_memory, sizeof(GameMemory));
 
     record->status = RS_RECORDING;
 }
@@ -265,7 +265,8 @@ void memory_record_play()
     record->maxInputFrame = record->currentInputFrame;
     record->currentInputFrame = 0;
 
-    memcpy(memory_ptr, (void*)&record->memory, sizeof(Memory));
+    memcpy(&game_data_ptr->djn_memory, (void*)&record->game_memory, sizeof(GameMemory));
+
 }
 
 void memory_record_step()
@@ -281,7 +282,7 @@ void memory_record_step()
             for (int i = 0; i < MAX_NUM_PLAYERS; i++)
             {
                 PlayerInput& pi = record->inputs[i][record->currentInputFrame];
-                pi = memory_ptr->input.inputs[i][memory_ptr->input.currentHistoryFrame];
+                pi = game_data_ptr->djn_memory.input.inputs[i][game_data_ptr->djn_memory.input.currentHistoryFrame];
             }
             record->currentInputFrame ++;
         } break;
@@ -290,7 +291,7 @@ void memory_record_step()
             for (int i = 0; i < MAX_NUM_PLAYERS; i++)
             {
                 PlayerInput& pi = record->inputs[i][record->currentInputFrame];
-                memory_ptr->input.inputs[i][memory_ptr->input.currentHistoryFrame] = pi;
+                game_data_ptr->djn_memory.input.inputs[i][game_data_ptr->djn_memory.input.currentHistoryFrame] = pi;
             }
 
             record->currentInputFrame ++;
@@ -319,7 +320,7 @@ int main(int argc, char* args[])
         uint64_t start_time = djn::get_time_micro(); 
 
         // Reset input :
-        memory_ptr->input._int_new_frame();
+        game_data_ptr->djn_memory.input._int_new_frame();
 
         glfwPollEvents();
         // Update inputs :
@@ -328,22 +329,22 @@ int main(int argc, char* args[])
             {
                 double x, y;
                 glfwGetCursorPos(window, &x, &y);
-                memory_ptr->input.mouse_x = x;
-                memory_ptr->input.mouse_y = y;
+                game_data_ptr->djn_memory.input.mouse_x = x;
+                game_data_ptr->djn_memory.input.mouse_y = y;
 
                 for (int entry = 0; input_mappings[entry].player != -1; ++entry)
                 {
                     InputMapping &m = input_mappings[entry];
                     if (glfwGetKey(window, m.glfw_key))
                     {
-                        memory_ptr->input._int_set_key(m.player, m.djn_key);
+                        game_data_ptr->djn_memory.input._int_set_key(m.player, m.djn_key);
                     }
                     
                 }
 
                 for (int i = 0; i < 5; i++)
                 {
-                    memory_ptr->input.mouse_btn[i] = glfwGetMouseButton(window, i);
+                    game_data_ptr->djn_memory.input.mouse_btn[i] = glfwGetMouseButton(window, i);
                 }
 
                 if (glfwGetKey(window, GLFW_KEY_F10) && (!record || record->status != RS_RECORDING))
@@ -359,13 +360,13 @@ int main(int argc, char* args[])
             
         }
 
-        glfwGetFramebufferSize(window, &memory_ptr->screen_width, &memory_ptr->screen_height);
+        glfwGetFramebufferSize(window, &game_data_ptr->screen_width, &game_data_ptr->screen_height);
 
         /* Render here */
         //glClear(GL_COLOR_BUFFER_BIT);
         
         memory_record_step();
-        code_data.game_loop(memory_ptr);
+        code_data.game_loop(game_data_ptr);
 
 
 #ifndef __STANDALONE__
@@ -387,18 +388,18 @@ int main(int argc, char* args[])
             
             if (canOpen)
             {
-                code_data.game_deinit(memory_ptr);
+                code_data.game_deinit(game_data_ptr);
 
                 UnloadGameCode(code_data);
                 code_data = LoadGameCode();
                 code_data.lastWriteTime = currentFileTime;
 
-                djnStatus initStatus = code_data.game_init(memory_ptr);
+                djnStatus initStatus = code_data.game_init(game_data_ptr);
                 if (initStatus != djnStatus::djnSta_OK)
                 {
                     if (initStatus == djnStatus::djnSta_ERROR_MEMORY)
                     {
-                        printf("Error : Memory layout has changed since last reload. Forced to quit game\n");
+                        printf("Error : GameData layout has changed since last reload. Forced to quit game\n");
                         system("PAUSE");
                         return -1;
                     }
@@ -416,12 +417,12 @@ int main(int argc, char* args[])
         /* Swap front and back buffers */
         glfwSwapBuffers(window);        
 
-        //memset(&memory_ptr->input, 0, sizeof(memory_ptr->input));
+        //memset(&game_data_ptr->djn_memory.input, 0, sizeof(game_data_ptr->djn_memory.input));
         /* Poll for and process events */
 
         uint64_t end_time = djn::get_time_micro();
         
-        AddDebugFrame(&memory_ptr->debug, (end_time - start_time)/1000.0f);
+        AddDebugFrame(&game_data_ptr->debug, (end_time - start_time)/1000.0f);
     }
 
 /*    deinit_input_mapping();*/

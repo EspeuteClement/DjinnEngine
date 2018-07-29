@@ -121,20 +121,26 @@ inline void AddDebugFrame(Debug *debug, r32 lastTime)
 }
 
 
-
-// Memory ====================================================================
-struct Memory
+struct GameMemory
 {
-    u32 memory_size;    // Used to detect if memory size has changed
-                        // Should always be the first thing in memory
-    
     s32 x;
     s32 y;
+
+    Input input;
+};
+
+// GameData ====================================================================
+struct GameData
+{
+    u32 memory_size;    // Used to detect if game_data size has changed
+                        // Should always be the first thing in game_data
+
+    GameMemory djn_memory;
     
     s32 screen_width;
     s32 screen_height;
 
-    Input input;
+
 
     // These function are ment to be called from the main application when the envents are encountered
     void (*OnCharInputCallback) (u32 inputChar);
@@ -145,9 +151,15 @@ struct Memory
     Debug debug;
 };
 
-// Note : Never store this pointer !!! It can become invalid at any moment
-extern Memory* djn_memory;
 
+
+// Note : Never store this pointer !!! It can become invalid at any moment
+extern GameData* djn_game_data;
+
+inline GameMemory* djn_memory()
+{
+    return &djn_game_data->djn_memory;
+}
 
 #ifdef __STANDALONE__
     #define GAME_API extern
@@ -155,14 +167,14 @@ extern Memory* djn_memory;
     #define GAME_API extern "C" __declspec(dllexport)
 #endif
 
-#define GAME_LOOP(name) void name(Memory* memory)
+#define GAME_LOOP(name) void name(GameData* game_data)
 typedef GAME_LOOP(game_loop_handle);
 GAME_API GAME_LOOP(game_loop);
 
-#define GAME_INIT(name) djnStatus name(Memory* memory)
+#define GAME_INIT(name) djnStatus name(GameData* game_data)
 typedef GAME_INIT(game_init_handle);
 GAME_API GAME_INIT(game_init);
 
-#define GAME_DEINIT(name) void name(Memory* memory)
+#define GAME_DEINIT(name) void name(GameData* game_data)
 typedef GAME_DEINIT(game_deinit_handle);
 GAME_API GAME_DEINIT(game_deinit);
