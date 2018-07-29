@@ -37,7 +37,7 @@ int main(void)
 
 
     memory.proc = (void*)glfwGetProcAddress;
-    game_init_graphic(&memory);
+    GAME_INIT(&memory);
 
 
     emscripten_set_main_loop(&renderFrame,0,1);

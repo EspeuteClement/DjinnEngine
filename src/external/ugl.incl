@@ -66,6 +66,9 @@ _T(void         )   _F( glBindRenderbuffer          )   _P(( GLenum target,  GLu
 _T(void         )   _F( glRenderbufferStorage       )   _P(( GLenum target,  GLenum internalformat,  GLsizei width,  GLsizei height));
 _T(void         )   _F( glFramebufferRenderbuffer   )   _P(( GLenum target,  GLenum attachment,  GLenum renderbuffertarget,  GLuint renderbuffer));
 _T(void         )   _F( glFramebufferTexture        )   _P(( GLenum target,GLenum attachment,GLuint texture,GLint level));
+_T(void 		)	_F(	glDrawBuffers				)	_P(( GLsizei n, const GLenum *bufs));
+_T(void 		)	_F(	glFramebufferTexture2D		)	_P(( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level));
+
 
 #undef _T
 #undef _F

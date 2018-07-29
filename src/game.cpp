@@ -243,9 +243,12 @@ void init_audio()
     }
 }
 
-GAME_INIT_GRAPHIC(game_init_graphic)
+GAME_INIT(game_init)
 {
-
+    if (memory->memory_size != sizeof(Memory))
+    {
+        return djnSta_ERROR_MEMORY;
+    }
 
     djn_memory = memory;
     djn_gfx_init(memory);
@@ -254,13 +257,13 @@ GAME_INIT_GRAPHIC(game_init_graphic)
     ImGui_ImplOpenGL3_Init("#version 100");
     ImGui::StyleColorsDark();
 
-
     //init_audio();
     SetCallbacks(memory);
 
+    return djnSta_OK;
 }
 
-void djn_game_debug_menu(Memory* memory)
+void djn_game_menu_bar(Memory* memory)
 {
     float mean_fps = 0.0f;
     float min = 100;
@@ -272,6 +275,7 @@ void djn_game_debug_menu(Memory* memory)
         min = min > value ? value : min;
         max = max < value ? value : max;
     }
+
     ImGui::BeginMainMenuBar();
         ImGui::Text("fps : %03.1f",  1000.0f/(mean_fps));
         if(ImGui::IsItemHovered())
@@ -281,13 +285,29 @@ void djn_game_debug_menu(Memory* memory)
             ImGui::Text("min: %04.2f max: %04.2f avg:%04.2f", min, max, mean_fps);
             ImGui::EndTooltip();
         }
-        ImGui::Text("Hello world");
+        
+        if(ImGui::BeginMenu("Debug"))
+        {
+            const char * items[] =
+            {
+                "GDM_Normal",
+                "GDM_Window"
+            };
+
+            ImGui::Combo("Game Draw Mode", (int*) &(memory->debug.game_draw_mode), items, 2, -1);
+            ImGui::EndMenu();
+        }
 
     ImGui::EndMainMenuBar();
+}
 
-    ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
+void djn_game_debug_menu(Memory* memory)
+{
+    djn_game_menu_bar(memory);
+
+/*    ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
     ImGui::InputInt("Freq", &pitch_index, 1, 12);
-    pitch_index %= NUM_NOTES;
+    pitch_index %= NUM_NOTES;*/
     //ImGui::Text("Samples : %d", device.)
 }
 
@@ -302,7 +322,7 @@ GAME_LOOP(game_loop)
     djn_game_imgui_end();
 }
 
-GAME_UNLOAD_GRAPHIC(game_unload_graphic)
+GAME_DEINIT(GAME_DEINIT)
 {
     ImGui_ImplOpenGL3_Shutdown();
     

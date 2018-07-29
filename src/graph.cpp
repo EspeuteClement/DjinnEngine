@@ -7,6 +7,8 @@
 #include "tools/djinn_pack_api.h"
 #include "external/imgui/imgui.h"
 
+#include "game.h"
+
 unsigned char *test_image;
 
 struct vertex_struct
@@ -16,67 +18,40 @@ struct vertex_struct
     float u, v;
 };
 
-vertex_struct vertex_array[6] =
-{
-    {   0.0f, 0.0f, 1.f, 1.f, 1.f, 0.0f, 0.0f },
-    {   0.0f, 240.0f, 1.f, 1.f, 1.f, 0.0f, 1.0f },
-    {   512.0f, 240.0f, 1.f, 1.f, 1.f, 1.0f, 1.0f },
-    {   0.0f, 0.0f, 1.f, 1.f, 1.f, 0.0f, 0.0f },
-    {   512.0f, 0.0f, 1.f, 1.f, 1.f, 1.0f, 0.0f },
-    {   512.0f, 240.0f, 1.f, 1.f, 1.f, 1.0f, 1.0f }
-};
+GLuint vbo;
+GLuint vao;
 
-GLuint vertex_buffer_id;
-
-
-static const char* vertex_shader_text =
-"#version 100\n"
-"#ifdef GL_ES\n"
-"precision mediump float;\n"
-"#endif\n"
-"uniform mat4 MVP;\n"
-"uniform vec2 uTexSize;\n"
-"attribute vec3 vCol;\n"
-"attribute vec2 vPos;\n"
-"attribute vec2 vTexCoord;\n"
-"varying vec2 texcoord;\n"
-"varying vec3 color;\n"
-"void main()\n"
-"{\n"
-"    texcoord = vTexCoord;\n"
-"    gl_Position = MVP * vec4(vPos, 0.0, 1.0);\n"
-"    color = vCol;\n"
-"}\n";
-
-static const char* fragment_shader_text =
-"#version 100\n"
-"#ifdef GL_ES\n"
-"precision mediump float;\n"
-"#endif\n"
-"varying vec3 color;\n"
-"varying vec2 texcoord;\n"
-"uniform sampler2D tex;\n"
-"void main()\n"
-"{\n" // vec4(color, 1.0) * 
-"    gl_FragColor = texture2D(tex, texcoord);\n"
-/*"   if(gl_FragColor.a == 0.0f)"
-"   {"
-"       discard;"
-"   }"*/
-"}\n";
 
 GLuint vertex_shader, fragment_shader, program;
+GLuint render_buffer;
+GLuint render_buffer_texture;
+GLuint render_buffer_vertex_vbo;
+GLuint render_buffer_vertex_vao;
 
 GLuint tex;
 GLint mvp_location;
 
-#define FACTOR 6000
+#define TARGET_WIDTH 320
+#define TARGET_HEIGHT 240
+
+#define FACTOR 200
 #define MAX_VERTEX FACTOR*7
 struct
 {
     vertex_struct v[MAX_VERTEX];
     uint64_t count;
 } vertex_data;
+
+static const vertex_struct render_buffer_vertex[6] =
+{
+    { 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,                               0.0f, 1.0f },
+    { TARGET_WIDTH, 0.0f,   1.0f, 1.0f, 1.0f,                       1.0f, 1.0f },
+    { TARGET_WIDTH, TARGET_HEIGHT,   1.0f, 1.0f, 1.0f,              1.0f, 0.0f },
+    
+    { 0.0f, 0.0f,   1.0f, 1.0f, 1.0f,                               0.0f, 1.0f },
+    { 0.0f, TARGET_HEIGHT,   1.0f, 1.0f, 1.0f,                      0.0f, 0.0f },
+    { TARGET_WIDTH, TARGET_HEIGHT,   1.0f, 1.0f, 1.0f,              1.0f, 0.0f }
+};
 
 void djn_init_image(Memory* memory)
 {
@@ -85,17 +60,12 @@ void djn_init_image(Memory* memory)
 
     pack_final data;
     pack_open("data/pack.dat", data, "r");
-
-    //data.pack_data_buffer = &(memory->graph.data[0]);
     
     // @TODO : Allocation in Frame Allocation
     data.pack_data_buffer = (pack_data*) malloc(data.num_images * sizeof(pack_data));
     data.pack_name_buffer = (pack_name*) malloc(data.num_images * sizeof(pack_name));
 
     pack_read(data);
-    
-    //int index = pack_find("Hector1.png", data.pack_name_buffer, data.num_images);
-    //memory->graph.test_image_data = data.pack_data_buffer[index];
 
     // Tranform packed data into usable data
     uint32_t count = data.num_images;
@@ -146,8 +116,12 @@ void djn_init_opengl(Memory* memory)
 
     glDisable(GL_MULTISAMPLE);
 
-    glGenBuffers(1, &vertex_buffer_id); 
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_id); 
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+
+    glGenBuffers(1, &vbo); 
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
 
     program = uGl_LoadProgram_File("data/base.vert", "data/base.frag");
     //program = uGl_LoadProgram(vertex_shader_text, fragment_shader_text);
@@ -171,6 +145,44 @@ void djn_init_opengl(Memory* memory)
                           sizeof(float) * 7, (void*) (sizeof(float) * 5));
 
     glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
+    // ===================================================================================================
+
+    glGenFramebuffers(1, &render_buffer);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, render_buffer);
+
+    glGenTextures(1, &render_buffer_texture);
+
+    glBindTexture(GL_TEXTURE_2D, render_buffer_texture);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, TARGET_WIDTH, TARGET_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, render_buffer_texture, 0);
+    GLenum DrawBuffers[1] = {GL_COLOR_ATTACHMENT0};
+    glDrawBuffers(1, DrawBuffers);
+    glGenVertexArrays(1, &render_buffer_vertex_vao);
+ 
+    glBindVertexArray(render_buffer_vertex_vao);
+    glGenBuffers(1, &render_buffer_vertex_vbo);
+
+    glBindBuffer(GL_ARRAY_BUFFER, render_buffer_vertex_vbo);
+
+    glBufferData(GL_ARRAY_BUFFER, sizeof(render_buffer_vertex), render_buffer_vertex, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(vpos_location); 
+    glVertexAttribPointer(vpos_location, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(float) * 7, (void*) 0); 
+    glEnableVertexAttribArray(vcol_location); 
+    glVertexAttribPointer(vcol_location, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(float) * 7, (void*) (sizeof(float) * 2));
+
+    glEnableVertexAttribArray(vtex_location);
+    glVertexAttribPointer(vtex_location, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(float) * 7, (void*) (sizeof(float) * 5));
 }
 
 void djn_gfx_init(Memory* memory)
@@ -239,42 +251,89 @@ void push_sprite(int id, float x, float y, float scale_w = 1.0f, float scale_h =
 void djn_gfx_begin(Memory* memory)
 {
     vertex_data.count = 0;
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 }
 
 
 void djn_gfx_draw_vertex_data(Memory* memory)
 {
+    glBindTexture(GL_TEXTURE_2D, tex);
     glBufferData(GL_ARRAY_BUFFER, vertex_data.count * sizeof(vertex_struct), vertex_data.v, GL_STREAM_DRAW); 
     glDrawArrays(GL_TRIANGLES, 0, vertex_data.count);
 }
 
 void djn_gfx_setup_view(Memory* memory)
 {
+    glClear(GL_COLOR_BUFFER_BIT);
+    
+
     float ratio;
     int width, height;
     mat4x4 m, p, mvp;
 
-    ratio = memory->screen_width / (float) memory->screen_height;
-    glViewport(0, 0, memory->screen_width, memory->screen_height);
+    glBindFramebuffer(GL_FRAMEBUFFER, render_buffer);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    ratio = TARGET_HEIGHT / (float) TARGET_WIDTH;
+    glViewport(0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+
+
     mat4x4_identity(m);
-    mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
-    mat4x4_rotate_Z(m, m, (float) memory->x/50);
-    mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
-    mat4x4_scale_aniso(m,m,memory->screen_width/400,memory->screen_height/300,1);
+   //mat4x4_translate(m, memory->screen_width/2, memory->screen_height/2, 0);
+   //mat4x4_rotate_Z(m, m, (float) memory->x/50);
+   //mat4x4_translate_in_place(m, -memory->screen_width/2, -memory->screen_height/2, 0);
+   //mat4x4_scale_aniso(m,m,memory->screen_width/400,memory->screen_height/300,1);
 
     memory->x ++;
 
-    mat4x4_ortho(p, 0, memory->screen_width, memory->screen_height, 0, 0, 1.f);
+    mat4x4_ortho(p, 0, TARGET_WIDTH, TARGET_HEIGHT, 0, 0, 1.f);
     mat4x4_mul(mvp, p, m);
     glUseProgram(program);
     glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+}
+
+void djn_draw_game_normal(Memory* memory)
+{
+    int height = TARGET_HEIGHT*2;
+
+    glViewport(0, memory->screen_height - height,TARGET_WIDTH*2, height);
+    glBindVertexArray(render_buffer_vertex_vao);
+    glBindBuffer(GL_ARRAY_BUFFER, render_buffer_vertex_vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(render_buffer_vertex), render_buffer_vertex, GL_STATIC_DRAW);
+    glBindTexture(GL_TEXTURE_2D, render_buffer_texture);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void djn_gfx_end(Memory* memory)
 {
     djn_gfx_setup_view(memory);
     djn_gfx_draw_vertex_data(memory);
+
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    switch (memory->debug.game_draw_mode)
+    {
+        case GDM_Normal:
+        {
+            djn_draw_game_normal(memory);
+            break;
+        }
+        case GDM_Window:
+        {
+            ImGui::Begin("Game", 0, ImGuiWindowFlags_HorizontalScrollbar | ImGuiWindowFlags_AlwaysAutoResize);
+            ImTextureID id = (void *)(intptr_t) render_buffer_texture;
+            ImGui::Image(id, ImVec2(TARGET_WIDTH*2,TARGET_HEIGHT*2), ImVec2(0,1), ImVec2(1,0), ImColor(255,255,255,255), ImColor(255,255,255,128));
+            ImGui::End();
+            break;
+        }
+        default:
+        {
+            break;
+        }
+    }
+
 }
 
 bool is_init = false;
@@ -282,7 +341,7 @@ void djn_gfx_draw_all(Memory* memory)
 {
     djn_gfx_begin(memory);
 
-    push_sprite((memory->x++/4)%221, 64,64);
+    push_sprite((memory->x++/8)%8 + 180, 0,0);
 
     djn_gfx_end(memory);
 }

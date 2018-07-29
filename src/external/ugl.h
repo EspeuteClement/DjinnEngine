@@ -2,8 +2,8 @@
 #define _uGL_H_
 
 
-/*#include <stdint.h>
-#include <stddef.h>*/
+#include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -120,6 +120,7 @@ typedef float GLclampf;
 
 
 #define GL_GREATER 0x0204
+#define GL_FRAMEBUFFER 0x8D40
 
 
 
@@ -130,6 +131,11 @@ typedef float GLclampf;
 #define GL_TEXTURE_MIN_FILTER 0x2801
 
 #define GL_RGBA                           0x1908
+#define GL_RGB 0x1907
+
+#define GL_COLOR_ATTACHMENT0 0x8CE0
+
+
 #define GL_UNSIGNED_BYTE 0x1401
 
 #define GL_MULTISAMPLE 0x809D

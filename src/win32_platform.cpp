@@ -13,8 +13,8 @@ struct game_code_data
 {
     void* lib_handle;
     game_loop_handle*           game_loop;
-    game_init_graphic_handle*   game_init_graphic;
-    game_unload_graphic_handle* game_unload_graphic;
+    game_init_handle*   game_init;
+    game_deinit_handle* game_deinit;
 
     FILETIME lastWriteTime = {};
 };
@@ -36,8 +36,8 @@ game_code_data LoadGameCode()
 
 #ifdef __STANDALONE__
     Result.game_loop = &game_loop;
-    Result.game_init_graphic = &game_init_graphic;
-    Result.game_unload_graphic = &game_unload_graphic;
+    Result.game_init = &game_init;
+    Result.game_deinit = &Ggame_deinit;
     Result.lib_handle = (void*)1;
 #else
     // Parameters
@@ -56,8 +56,8 @@ game_code_data LoadGameCode()
     {
 		printf("=== Game DLL Loaded ! ===\n");
         Result.game_loop            = (game_loop_handle*)GetProcAddress((HMODULE) Result.lib_handle, funcname);
-        Result.game_init_graphic    = (game_init_graphic_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_init_graphic");
-        Result.game_unload_graphic  = (game_unload_graphic_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_unload_graphic");
+        Result.game_init    = (game_init_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_init");
+        Result.game_deinit  = (game_deinit_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_init");
 
     }
 #endif
@@ -74,7 +74,6 @@ void UnloadGameCode(game_code_data& data)
 }
 
 Memory* memory_ptr;
-
 void ScrollFunc(GLFWwindow* window,double xoffset,double yoffset)
 {
     memory_ptr->input.mouse_sx = (float)xoffset;
@@ -99,43 +98,45 @@ void init_memory()
 
     memory_ptr = (Memory*) malloc(sizeof(Memory));
     memset(memory_ptr, 0, sizeof(Memory));
-
-    uint64_t end_time = djn::get_time_micro();
+    memory_ptr->memory_size = sizeof(Memory);
 
     printf("Game memory footprint is %d kb\n", sizeof(Memory) / 1024);
 }
 
 GLFWwindow* window;
 
-int main(int argc, char* args[])
+int init_glfw()
 {
     {
         DJN_PERF("GLFW time");
 
         /* Initialize the library */
         if (!glfwInit())
-            return -1;
+            return 0;
         
         /* Create a windowed mode window and its OpenGL context */
         window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
         if (!window)
         {
             glfwTerminate();
-            return -1;
+            return 0;
         }
         char buffer[32];
     }
 
-
-    init_memory();
-
     glfwWindowHint(GLFW_SAMPLES, 0);
-
-    /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(1);
 
+    return 1;
+}
 
-    game_code_data code_data = LoadGameCode();
+game_code_data code_data;
+
+int init_game()
+{
+    init_memory();
+    code_data = LoadGameCode();
 
     {
         // Input callbacks
@@ -143,7 +144,6 @@ int main(int argc, char* args[])
         glfwSetCharCallback(window, &CharFunc);
         glfwSetKeyCallback(window, &KeyFunc);
     }
-    
 
     if (!code_data.game_loop)
     {
@@ -151,16 +151,20 @@ int main(int argc, char* args[])
     }
 
     memory_ptr->proc = (void*)glfwGetProcAddress;
-    code_data.game_init_graphic(memory_ptr);
+    code_data.game_init(memory_ptr);
 
-    
-    int frame_acc = 0;
-    glfwSwapInterval(1);
+    return 1;
+}
+
+int main(int argc, char* args[])
+{
+    init_glfw();
+    init_game();
+
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         uint64_t start_time = djn::get_time_micro(); 
-        frame_acc ++;
 
         // Update inputs :
         {
@@ -206,15 +210,29 @@ int main(int argc, char* args[])
             
             if (canOpen)
             {
-                code_data.game_unload_graphic(memory_ptr);
+                code_data.game_deinit(memory_ptr);
 
                 UnloadGameCode(code_data);
                 code_data = LoadGameCode();
                 code_data.lastWriteTime = currentFileTime;
 
-                code_data.game_init_graphic(memory_ptr);
+                djnStatus initStatus = code_data.game_init(memory_ptr);
+                if (initStatus != djnStatus::djnSta_OK)
+                {
+                    if (initStatus == djnStatus::djnSta_ERROR_MEMORY)
+                    {
+                        printf("Error : Memory layout has changed since last reload. Forced to quit game\n");
+                        system("PAUSE");
+                        return -1;
+                    }
+                    else
+                    {
+                        printf("Error : Couldn't re-init game\n");
+                        system("PAUSE");
+                        return -1;
+                    }
+                }
             }
-
         }
 #endif
 
@@ -228,13 +246,6 @@ int main(int argc, char* args[])
         uint64_t end_time = djn::get_time_micro();
         
         AddDebugFrame(&memory_ptr->debug, (end_time - start_time)/1000.0f);
-
-        if (frame_acc >= 0)
-        {
-            //if ((end_time - start_time) > 20000)
-                //printf("Frame_time = %d\n" , (uint32_t) (end_time - start_time));
-            frame_acc = 0;
-        }
     }
 
     glfwTerminate();
