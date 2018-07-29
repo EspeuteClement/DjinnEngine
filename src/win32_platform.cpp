@@ -8,6 +8,7 @@
 #include "game.h"
 
 #include <cstdio>
+#include <cstring>
 
 struct game_code_data
 {
@@ -207,6 +208,104 @@ int init_game()
     return 1;
 }
 
+
+
+// Recording
+
+#define MAX_RECORDING_INPUTS (1 << 20)
+
+enum RecordStatus
+{
+    RS_STOPPED,
+    RS_PLAYING,
+    RS_RECORDING
+};
+
+struct GameRecord
+{
+    Memory memory;
+    RecordStatus status;
+    s32 currentInputFrame;
+    s32 maxInputFrame;
+    PlayerInput* inputs[MAX_NUM_PLAYERS];
+};
+
+GameRecord* record = nullptr;
+
+void memory_record_start()
+{
+    if (!record)
+    {
+        record = (GameRecord*) malloc(sizeof(GameRecord));
+        for (int i = 0; i < MAX_NUM_PLAYERS; i++)
+        {
+            record->inputs[i] = (PlayerInput*) malloc(sizeof(PlayerInput) * MAX_RECORDING_INPUTS);
+        }
+    }
+
+    record->currentInputFrame = 0;
+
+    for (int i = 0; i < MAX_NUM_PLAYERS; i++)
+    {
+         memset(record->inputs[i], 0, sizeof(PlayerInput) * MAX_RECORDING_INPUTS);
+    }
+   
+
+    memcpy((void*)&record->memory, memory_ptr, sizeof(Memory));
+
+    record->status = RS_RECORDING;
+}
+
+void memory_record_play()
+{
+    if (!record)
+        return;
+
+    record->status = RS_PLAYING;
+    record->maxInputFrame = record->currentInputFrame;
+    record->currentInputFrame = 0;
+
+    memcpy(memory_ptr, (void*)&record->memory, sizeof(Memory));
+}
+
+void memory_record_step()
+{
+    if (!record)
+        return;
+
+    switch(record->status)
+    {
+        case RS_RECORDING:
+        {
+
+            for (int i = 0; i < MAX_NUM_PLAYERS; i++)
+            {
+                PlayerInput& pi = record->inputs[i][record->currentInputFrame];
+                pi = memory_ptr->input.inputs[i][memory_ptr->input.currentHistoryFrame];
+            }
+            record->currentInputFrame ++;
+        } break;
+        case RS_PLAYING:
+        {
+            for (int i = 0; i < MAX_NUM_PLAYERS; i++)
+            {
+                PlayerInput& pi = record->inputs[i][record->currentInputFrame];
+                memory_ptr->input.inputs[i][memory_ptr->input.currentHistoryFrame] = pi;
+            }
+
+            record->currentInputFrame ++;
+
+            if (record->currentInputFrame >= record->maxInputFrame)
+            {
+                memory_record_play();
+            }
+        } break;
+        default:
+        {
+        } break;
+    }
+}
+
 int main(int argc, char* args[])
 {
     init_glfw();
@@ -245,7 +344,17 @@ int main(int argc, char* args[])
                 for (int i = 0; i < 5; i++)
                 {
                     memory_ptr->input.mouse_btn[i] = glfwGetMouseButton(window, i);
+                }
+
+                if (glfwGetKey(window, GLFW_KEY_F10) && (!record || record->status != RS_RECORDING))
+                {
+                    memory_record_start();
                 } 
+
+                if (glfwGetKey(window, GLFW_KEY_F11) && (record && record->status != RS_PLAYING))
+                {
+                    memory_record_play();
+                }
             }
             
         }
@@ -254,7 +363,8 @@ int main(int argc, char* args[])
 
         /* Render here */
         //glClear(GL_COLOR_BUFFER_BIT);
-       
+        
+        memory_record_step();
         code_data.game_loop(memory_ptr);
 
 

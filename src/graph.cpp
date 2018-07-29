@@ -10,6 +10,7 @@
 #include "game.h"
 
 unsigned char *test_image;
+Graph* graph;
 
 struct vertex_struct
 {
@@ -56,7 +57,7 @@ static const vertex_struct render_buffer_vertex[6] =
 void djn_init_image(Memory* memory)
 {
     int n;
-    test_image = stbi_load("data/pack.png", &(memory->graph.img_width),&(memory->graph.img_height),&n, 4);
+    test_image = stbi_load("data/pack.png", &(graph->img_width),&(graph->img_height),&n, 4);
 
     pack_final data;
     pack_open("data/pack.dat", data, "r");
@@ -72,7 +73,7 @@ void djn_init_image(Memory* memory)
     for (int current_image_index = 0; current_image_index < count; ++current_image_index)
     {
         pack_data & packed = data.pack_data_buffer[current_image_index];
-        djn_quad  & quad = memory->graph.data[current_image_index];
+        djn_quad  & quad = graph->data[current_image_index];
 
         quad.offset.x = packed.ox;
         quad.offset.y = packed.oy;
@@ -80,10 +81,10 @@ void djn_init_image(Memory* memory)
         quad.originalSize.x = packed.ow;
         quad.originalSize.y = packed.oh;
 
-        quad.uv[0].x        = (float) (packed.q.u1)  / (float) (memory->graph.img_width);
-        quad.uv[0].y        = (float) (packed.q.v1)  / (float) (memory->graph.img_height);
-        quad.uv[1].x        = (float) (packed.q.u2)  / (float) (memory->graph.img_width);
-        quad.uv[1].y        = (float) (packed.q.v2)  / (float) (memory->graph.img_height);
+        quad.uv[0].x        = (float) (packed.q.u1)  / (float) (graph->img_width);
+        quad.uv[0].y        = (float) (packed.q.v1)  / (float) (graph->img_height);
+        quad.uv[1].x        = (float) (packed.q.u2)  / (float) (graph->img_width);
+        quad.uv[1].y        = (float) (packed.q.v2)  / (float) (graph->img_height);
 
         quad.quadSize.x = packed.q.u2 - packed.q.u1;
         quad.quadSize.y = packed.q.v2 - packed.q.v1;
@@ -102,7 +103,7 @@ void djn_init_image(Memory* memory)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (memory->graph.img_width),(memory->graph.img_height), 0, GL_RGBA, GL_UNSIGNED_BYTE, test_image);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (graph->img_width),(graph->img_height), 0, GL_RGBA, GL_UNSIGNED_BYTE, test_image);
 }
 
 void djn_init_opengl(Memory* memory)
@@ -187,8 +188,14 @@ void djn_init_opengl(Memory* memory)
 
 void djn_gfx_init(Memory* memory)
 {
+    graph = (Graph*) malloc(sizeof(Graph));
     djn_init_opengl(memory);
     djn_init_image(memory);
+}
+
+void djn_gfx_deinit(Memory* memory)
+{
+    free(graph);
 }
 
 void push_triangle(const vertex_struct& v1, const vertex_struct& v2, const vertex_struct& v3)
@@ -243,7 +250,7 @@ void push_quad(float x, float y, float w, float h, float ox, float oy, float ow,
 void push_sprite(int id, float x, float y, float scale_w = 1.0f, float scale_h = 1.0f)
 {
     
-    djn_quad & d = djn_memory->graph.data[id];
+    djn_quad & d = graph->data[id];
 
     push_quad(x+d.offset.x,y+d.offset.y, d.quadSize.x, d.quadSize.y * scale_h, d.uv[0].x, d.uv[0].y, d.uv[1].x, d.uv[1].y);
 }
@@ -349,7 +356,7 @@ void djn_gfx_draw_all(Memory* memory)
 #if 0
     ImGui::Begin("Atlas Explorer", 0, ImGuiWindowFlags_HorizontalScrollbar);
     ImTextureID id = (void *)(intptr_t) tex;
-    ImGui::Image(id, ImVec2(memory->graph.img_width, memory->graph.img_height), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
+    ImGui::Image(id, ImVec2(graph->img_width, graph->img_height), ImVec2(0,0), ImVec2(1,1), ImColor(255,255,255,255), ImColor(255,255,255,128));
     ImGui::End();
 #endif
 

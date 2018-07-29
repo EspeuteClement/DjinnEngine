@@ -120,18 +120,7 @@ inline void AddDebugFrame(Debug *debug, r32 lastTime)
     debug->currentTimeFrame = (debug->currentTimeFrame + 1) % DEBUG_FRAMES_COUNT;
 }
 
-// Graphics ==================================================================
-#define DJN_TEXTURE_WIDTH (1024)
-#define DJN_TEXTURE_SIZE (DJN_TEXTURE_WIDTH * DJN_TEXTURE_WIDTH * 4)
-#define IMAGE_DATA_MAX (512)
-struct Graph
-{
-    int img_width;
-    int img_height;
-    unsigned char texture[DJN_TEXTURE_SIZE];
 
-    djn_quad data[IMAGE_DATA_MAX];
-};
 
 // Memory ====================================================================
 struct Memory
@@ -145,7 +134,6 @@ struct Memory
     s32 screen_width;
     s32 screen_height;
 
-    Graph graph;
     Input input;
 
     // These function are ment to be called from the main application when the envents are encountered

@@ -338,22 +338,23 @@ GAME_LOOP(game_loop)
     djn_memory = memory;
     djn_game_imgui_begin();
 
+    int speed = 2;
     if (djn_key(0, djnKey_RIGHT))
     {
-        memory->x ++;    
+        memory->x += speed;    
     }
     if (djn_key(0, djnKey_LEFT))
     {
-        memory->x --;    
+        memory->x -= speed;    
     }
 
     if (djn_key(0, djnKey_UP))
     {
-        memory->y --;    
+        memory->y -= speed;    
     }
     if (djn_key(0, djnKey_DOWN))
     {
-        memory->y ++;    
+        memory->y += speed;    
     }
 
 
@@ -371,6 +372,8 @@ GAME_DEINIT(GAME_DEINIT)
 
     mal_device_uninit(&device);
     mal_decoder_uninit(&decoder);
+
+    djn_gfx_deinit(memory);
     //stbi_image_free(test_image);
     // Do nothing at the moment
 }
