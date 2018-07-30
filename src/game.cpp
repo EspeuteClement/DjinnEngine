@@ -11,6 +11,13 @@
 #define MINI_AL_IMPLEMENTATION
 #include "external/mini_al/mini_al.h"
 
+// OGG playback
+#include "external/stb_vorbis.c"
+#undef L
+#undef R
+#undef C
+
+
 GameData* djn_game_data = nullptr;
 
 void OnCharInputCallback(u32 c)
@@ -138,6 +145,17 @@ static double interpolate(float a, float b, float c)
     return a + (b-a) * c;
 }
 
+stb_vorbis* vorbis_file;
+
+// Overkill optim : Do that with smid ?
+void scale_buffer(float* in_buffer, float volume, u32 nb_floats)
+{
+    for (u32 cursor = 0; cursor < nb_floats; ++ cursor)
+    {
+        in_buffer[cursor] *= volume;
+    }
+}
+
 mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, void* pSamples)
 {
     /*mal_decoder* pDecoder = (mal_decoder*)pDevice->pUserData;
@@ -154,6 +172,7 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
     }
 
     return samples_read;*/
+#if 0
     float sample_speed = GetNoteSampleRate(pitch_index) * 32;
 
     float* pSamplesFloat = (float*) pSamples;
@@ -176,6 +195,19 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
 
 
     }
+#endif
+
+    u32 samples_read = stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, (float*) pSamples, frameCount * 2);
+    
+    if (samples_read < frameCount)
+    {
+        stb_vorbis_seek(vorbis_file, 0);
+        samples_read += stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, &((float*)pSamples)[samples_read * 2], (frameCount-samples_read) * 2);
+    }
+
+    scale_buffer((float*) pSamples, volume, frameCount * 2);
+
+    // Mix
 
     return frameCount;
 }
@@ -217,6 +249,22 @@ void init_audio()
         mal_decoder_uninit(&decoder);
     }*/
 
+
+    int error = 0;
+    vorbis_file = stb_vorbis_open_filename("data/calm.ogg", &error, NULL);
+
+    if (error)
+    {
+        printf("Error Couldn open vorbis file \n");
+        return;
+    }
+    else
+    {
+        printf("Vorbis file opened");
+    }
+
+
+
     init_pitch();
 
     if (mal_context_init(NULL, 0, NULL, &Ctxt) != MAL_SUCCESS)
@@ -257,7 +305,7 @@ GAME_INIT(game_init)
     ImGui_ImplOpenGL3_Init("#version 100");
     ImGui::StyleColorsDark();
 
-    //init_audio();
+    init_audio();
     SetCallbacks(game_data);
 
     return djnSta_OK;
@@ -323,10 +371,10 @@ void djn_game_debug_menu(GameData* game_data)
 
     ImGui::End();
 
-/*    ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
+    ImGui::SliderFloat("Volume", &volume, 0.0f, 1.0f);
     ImGui::InputInt("Freq", &pitch_index, 1, 12);
-    pitch_index %= NUM_NOTES;*/
-    //ImGui::Text("Samples : %d", device.)
+    pitch_index %= NUM_NOTES;
+    ImGui::Text("Samples : %d", stb_vorbis_get_sample_offset(vorbis_file));
 }
 
 bool djn_key(u8 player, djnKey key)
