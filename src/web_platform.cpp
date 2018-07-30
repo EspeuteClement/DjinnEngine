@@ -1,6 +1,6 @@
 
 
-#include <GL/glfw.h>
+#include "external/glfw/glfw.h"
 
 #include "utils/utils.h"
 #include "utils/utils.cpp"
