@@ -136,6 +136,8 @@ struct GameData
                         // Should always be the first thing in game_data
 
     GameMemory djn_memory;
+
+    bool is_system_paused; // if true, nothing should update
     
     s32 screen_width;
     s32 screen_height;

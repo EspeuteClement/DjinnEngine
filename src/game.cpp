@@ -196,7 +196,8 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
 
     }
 #endif
-
+    if (djn_game_data->is_system_paused)
+        return 0;
     u32 samples_read = stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, (float*) pSamples, frameCount * 2);
     
     if (samples_read < frameCount)
@@ -375,6 +376,7 @@ void djn_game_debug_menu(GameData* game_data)
     ImGui::InputInt("Freq", &pitch_index, 1, 12);
     pitch_index %= NUM_NOTES;
     ImGui::Text("Samples : %d", stb_vorbis_get_sample_offset(vorbis_file));
+    ImGui::Checkbox("System Pause", &(game_data->is_system_paused));
 }
 
 bool djn_key(u8 player, djnKey key)
@@ -384,6 +386,8 @@ bool djn_key(u8 player, djnKey key)
 
 GAME_LOOP(game_loop)
 {
+    if (game_data->is_system_paused)
+        return;
     djn_game_data = game_data;
     djn_game_imgui_begin();
 
