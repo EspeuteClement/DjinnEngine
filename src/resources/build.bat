@@ -1,0 +1,1 @@
+rc icon.rc

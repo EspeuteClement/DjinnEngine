@@ -5,6 +5,7 @@
         "internal.h": "c",
         "win32_platform.h": "c",
         "cstdint": "cpp",
-        "ugl.h": "c"
+        "ugl.h": "c",
+        "cstring": "cpp"
     }
 }

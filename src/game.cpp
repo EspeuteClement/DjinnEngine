@@ -366,7 +366,7 @@ GAME_LOOP(game_loop)
     djn_game_imgui_end();
 }
 
-GAME_DEINIT(GAME_DEINIT)
+GAME_DEINIT(game_deinit)
 {
     ImGui_ImplOpenGL3_Shutdown();
     

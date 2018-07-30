@@ -38,7 +38,7 @@ game_code_data LoadGameCode()
 #ifdef __STANDALONE__
     Result.game_loop = &game_loop;
     Result.game_init = &game_init;
-    Result.game_deinit = &Ggame_deinit;
+    Result.game_deinit = &game_deinit;
     Result.lib_handle = (void*)1;
 #else
     // Parameters
