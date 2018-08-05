@@ -1,17 +1,17 @@
 #include "game.h"
 #include <cstdio>
 
-#include "graph.cpp"
 #include "external/imgui/imgui.h"
 #include "external/imgui/imgui_impl_djinn.h"
 
-#define DR_WAV_IMPLEMENTATION
-#include "external/mini_al/dr_wav.h"
+//#define DR_WAV_IMPLEMENTATION
+//#include "external/mini_al/dr_wav.h"
 
 #define MINI_AL_IMPLEMENTATION
 #include "external/mini_al/mini_al.h"
 
 // OGG playback
+#define STB_VORBIS_HEADER_ONLY
 #include "external/stb_vorbis.c"
 #undef L
 #undef R
@@ -82,10 +82,8 @@ void djn_game_imgui_end()
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-mal_decoder decoder;
 mal_device_config config;
 mal_device device;
-mal_decoder_config cfg;
 mal_context Ctxt;
 
 uint32_t sample_pos = 0;
@@ -156,6 +154,7 @@ void scale_buffer(float* in_buffer, float volume, u32 nb_floats)
     }
 }
 
+bool should_play = false;
 mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, void* pSamples)
 {
     /*mal_decoder* pDecoder = (mal_decoder*)pDevice->pUserData;
@@ -196,7 +195,7 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
 
     }
 #endif
-    if (djn_game_data->is_system_paused)
+    if (djn_game_data->is_system_paused || !should_play)
         return 0;
     u32 samples_read = stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, (float*) pSamples, frameCount * 2);
     
@@ -250,18 +249,17 @@ void init_audio()
         mal_decoder_uninit(&decoder);
     }*/
 
-
     int error = 0;
     vorbis_file = stb_vorbis_open_filename("data/calm.ogg", &error, NULL);
 
     if (error)
     {
-        printf("Error Couldn open vorbis file \n");
+        printf("Error Couldn open vorbis file\n");
         return;
     }
     else
     {
-        printf("Vorbis file opened");
+        printf("Vorbis file opened\n");
     }
 
 
@@ -290,10 +288,20 @@ void init_audio()
         mal_context_uninit(&Ctxt);
         return;
     }
+
+    should_play = true;
+}
+
+void deinit_audio()
+{
+    should_play = false;
+    stb_vorbis_close(vorbis_file);
+    mal_device_uninit(&device);
 }
 
 GAME_INIT(game_init)
 {
+    printf(" --- Init game --- \n");
     if (game_data->memory_size != sizeof(GameData))
     {
         return djnSta_ERROR_MEMORY;
@@ -420,13 +428,12 @@ GAME_LOOP(game_loop)
 
 GAME_DEINIT(game_deinit)
 {
+    printf(" --- Deinit game --- \n");
+
+    deinit_audio();
+
     ImGui_ImplOpenGL3_Shutdown();
-    
     ImGui::DestroyContext();
-
-    mal_device_uninit(&device);
-    mal_decoder_uninit(&decoder);
-
     djn_gfx_deinit(game_data);
     //stbi_image_free(test_image);
     // Do nothing at the moment

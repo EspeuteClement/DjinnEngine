@@ -56,9 +56,9 @@ game_code_data LoadGameCode()
     if (Result.lib_handle)
     {
 		printf("=== Game DLL Loaded ! ===\n");
-        Result.game_loop            = (game_loop_handle*)GetProcAddress((HMODULE) Result.lib_handle, funcname);
+        Result.game_loop    = (game_loop_handle*)GetProcAddress((HMODULE) Result.lib_handle, funcname);
         Result.game_init    = (game_init_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_init");
-        Result.game_deinit  = (game_deinit_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_init");
+        Result.game_deinit  = (game_deinit_handle*)GetProcAddress((HMODULE) Result.lib_handle, "game_deinit");
 
     }
 #endif

@@ -56,6 +56,9 @@ static const vertex_struct render_buffer_vertex[6] =
 
 void djn_init_image(GameData* game_data)
 {
+    // Load the default texture and all it's associated quads
+    //
+
     int n;
     test_image = stbi_load("data/pack.png", &(graph->img_width),&(graph->img_height),&n, 4);
 
@@ -110,6 +113,9 @@ void djn_init_image(GameData* game_data)
 
 void djn_init_opengl(GameData* game_data)
 {
+    // Load opengl, init all the usefull values
+    //
+
     if (game_data->proc)
     {
         uGlLoadGL((uGlLoadProc)game_data->proc);
@@ -151,6 +157,9 @@ void djn_init_opengl(GameData* game_data)
 
 
     // ===================================================================================================
+
+    // Create render framebuffer
+    //
 
     glGenFramebuffers(1, &render_buffer);
 
@@ -351,6 +360,10 @@ void djn_gfx_draw_all(GameData* game_data)
 
     GameMemory* mem = djn_memory();
 
+    for (int i = 0; i < 16; i++)
+    {
+        push_sprite(0, i * 16,32);
+    }
     push_sprite(0, mem->x,mem->y);
 
     djn_gfx_end(game_data);
