@@ -2,6 +2,7 @@
 
 #define STB_VORBIS_NO_INTEGER_CONVERSION
 #define STB_VORBIS_NO_PUSHDATA_API
+#define STB_VORBIS_HEADER_ONLY
 
 #define MAL_NO_WASAPI
 #define MAL_NO_WINMM
@@ -15,8 +16,19 @@
 #define MAL_NO_DECODING
 #define MAL_NO_STDIO
 
+#define MINI_AL_IMPLEMENTATION
+#include "external/mini_al/mini_al.h"
+#undef MINI_AL_IMPLEMENTATION
+
+
+#define DR_WAV_IMPLEMENTATION
+#include "external/mini_al/dr_wav.h"
+#undef DR_WAV_IMPLEMENTATION
+
+
 #include "game.cpp"
 #include "graph.cpp"
+#include "audio.cpp"
 
 #include "external/ugl.cpp"
 #include "tools/djinn_pack_api.cpp"
@@ -28,6 +40,7 @@
 
 #undef STB_VORBIS_HEADER_ONLY
 #include "external/stb_vorbis.c"
+#define STB_VORBIS_HEADER_ONLY
 #undef L
 #undef R
 #undef C
