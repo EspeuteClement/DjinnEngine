@@ -48,18 +48,7 @@ struct
 
 void djn_audio_init()
 {
-    int error = 0;
-    vorbis_file = stb_vorbis_open_filename("data/calm.ogg", &error, NULL);
 
-    if (error)
-    {
-        printf("Error Couldn open vorbis file\n");
-        return;
-    }
-    else
-    {
-        printf("Vorbis file opened\n");
-    }
 
     if (mal_context_init(NULL, 0, NULL, &Ctxt) != MAL_SUCCESS)
     {
@@ -69,6 +58,7 @@ void djn_audio_init()
 
     config = mal_device_config_init(mal_format_f32, 2, SAMPLE_RATE, NULL, &on_send_frames_to_device);
 
+    config.bufferSizeInFrames = 512;
     if (mal_device_init(&Ctxt, mal_device_type_playback,NULL, &config, NULL, &device))
     {
         printf("Couldn't init mal device\n");
@@ -93,7 +83,7 @@ void djn_audio_deinit()
 {
     should_play = false;
     djn_audio_unload_sounds();
-    stb_vorbis_close(vorbis_file);
+    djn_audio_music_stop();
     mal_device_uninit(&device);
 }
 
@@ -176,21 +166,65 @@ void djn_audio_unload_sounds()
 	}
 }
 
+void djn_audio_music_play(const char* path)
+{
+    if (vorbis_file)
+    {
+        stb_vorbis_close(vorbis_file);
+    }
+
+    int error = 0;
+
+    vorbis_file = stb_vorbis_open_filename(path, &error, NULL);
+
+    if (error)
+    {
+        printf("Error Couldn open vorbis file\n");
+        vorbis_file = nullptr;
+        return;
+    }
+    else
+    {
+        printf("Vorbis file opened\n");
+    }
+
+}
+
+void djn_audio_music_stop()
+{
+    if (vorbis_file)
+    {
+        stb_vorbis_close(vorbis_file);
+        vorbis_file = nullptr;
+    }
+}
+
+
+
 
 mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, void* pSamples)
 {
     if (djn_game_data->is_system_paused || !should_play)
         return 0;
-    u32 samples_read = stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, (float*) pSamples, frameCount * 2);
-    
-    if (samples_read < frameCount)
+
+    if (vorbis_file)
     {
-        stb_vorbis_seek(vorbis_file, 0);
-        samples_read += stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, &((float*)pSamples)[samples_read * 2], (frameCount-samples_read) * 2);
+        u32 samples_read = stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, (float*) pSamples, frameCount * 2);
+        
+        if (samples_read < frameCount)
+        {
+            stb_vorbis_seek(vorbis_file, 0);
+            samples_read += stb_vorbis_get_samples_float_interleaved(vorbis_file, 2, &((float*)pSamples)[samples_read * 2], (frameCount-samples_read) * 2);
+        }
+
+        scale_buffer((float*) pSamples, volume, frameCount * 2);
     }
-
-    scale_buffer((float*) pSamples, volume, frameCount * 2);
-
+    else
+    {
+        // Init the buffer to 0
+        memset(pSamples, 0, frameCount * 2 * sizeof(float));
+    }
+    
     // Mix
 
     for (int current_sound = 0; current_sound < DJN_MAX_SOUNDS_PLAYING; current_sound++)
@@ -223,7 +257,14 @@ mal_uint32 on_send_frames_to_device(mal_device* pDevice, mal_uint32 frameCount, 
     // Clamp
     scale_buffer((float*) pSamples, 1.0, frameCount * 2);
 
+    djn_game_data->debug.lastTimeSamplesRead = frameCount;
     return frameCount;
+}
+
+float clamp(float value, float min, float max)
+{
+    const float v = value < min ? min : value;
+    return v > max ? max : v;
 }
 
 void scale_buffer(float* in_buffer, float volume, u32 nb_floats)
@@ -231,7 +272,7 @@ void scale_buffer(float* in_buffer, float volume, u32 nb_floats)
 	// Overkill optim : Do that with smid ?
     for (u32 cursor = 0; cursor < nb_floats; ++ cursor)
     {
-        in_buffer[cursor] *= volume;
+        in_buffer[cursor] = clamp(in_buffer[cursor] * volume, -0.99f, .99f);
     }
 }
 

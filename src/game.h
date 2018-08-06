@@ -95,6 +95,7 @@ struct Debug
     r32 lastFrameTimesMs[DEBUG_FRAMES_COUNT];
     int currentTimeFrame;
     GameDrawMode game_draw_mode;
+    u32 lastTimeSamplesRead;
 };
 
 inline void AddDebugFrame(Debug *debug, r32 lastTime)

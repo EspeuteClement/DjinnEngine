@@ -15,6 +15,10 @@ void djn_audio_init();	// Init audio system
 
 void djn_audio_deinit(); // Deinit audio system
 
+void djn_audio_music_play(const char* path);
+void djn_audio_music_stop();
+
+
 djn_audio_sound djn_audio_load_sound(const char* path);	// Load sound into sound manager
 
 void djn_audio_play_sound(djn_audio_sound& to_play);

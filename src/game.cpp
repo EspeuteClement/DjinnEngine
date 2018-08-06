@@ -139,6 +139,20 @@ void djn_game_menu_bar(GameData* game_data)
     {
         djn_audio_play_sound(test_sound);
     }
+
+    if (ImGui::Button("Play Music"))
+    {
+        djn_audio_music_play("data/calm.ogg");
+    }
+
+    ImGui::SameLine();
+
+    if (ImGui::Button("Stop Music"))
+    {
+        djn_audio_music_stop();
+    }
+
+    ImGui::Text("Samples : %d", djn_game_data->debug.lastTimeSamplesRead);
 }
 
 void djn_game_debug_menu(GameData* game_data)
@@ -199,9 +213,9 @@ GAME_LOOP(game_loop)
     }
     if (djn_key(0, djnKey_DOWN))
     {
-        mem->y += speed;    
+        mem->y += speed;
+        djn_audio_play_sound(test_sound);
     }
-
 
     djn_gfx_draw_all(game_data);
     djn_game_debug_menu(game_data);

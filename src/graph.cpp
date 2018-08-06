@@ -123,7 +123,7 @@ void djn_init_opengl(GameData* game_data)
     
     vertex_data.count = 0;
 
-    glDisable(GL_MULTISAMPLE);
+    //glDisable(GL_MULTISAMPLE);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
