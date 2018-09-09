@@ -21,9 +21,9 @@ typedef struct
 size_t game_data_size = sizeof(str);
 str* game_data = NULL;
 
-int main() {
+void step() {
   game_data->data1 ++;
-  fprintf(stdout, "Hello world : %d\n", game_data->data1);
+  fprintf(stdout, "This is a new code : %d\n", game_data->data1);
 }
 
 

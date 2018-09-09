@@ -5,9 +5,13 @@
  */
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
+
+#include <SDL.h>
 
 #include "libtcc.h"
+
+#include "ugl/ugl.c"
+#include "djn_graph.c"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
@@ -46,6 +50,23 @@ TCCState* load_game_code()
         {"SDL_MAIN_HANDLED", ""},
     };
 
+
+    #define _TYPEDECL(x)
+    #define _FUNCNAME(name) {&name, #name}
+    #define _PARAMS(x)
+    #define _END ,
+
+    typedef struct
+    {
+        void *ptr;
+        const char* name;
+    } symbol;
+
+    const symbol _ugl_symbols[] =
+    {
+        #include "ugl/ugl.incl"
+    };
+
     s = tcc_new();
     // Configure and compile the game
     {
@@ -69,6 +90,18 @@ TCCState* load_game_code()
             if (tcc_add_sysinclude_path(s, _path) == -1)
             {
                 fprintf(stderr, "Could not open library %s\n", _path);
+                tcc_delete(s);
+                return NULL;
+            }
+        }
+
+        // Add all ugl symbols
+        for (int i = 0; i < sizeof_array(_ugl_symbols); i++)
+        {
+            const symbol * _symbol = &_ugl_symbols[i];
+            if (tcc_add_symbol(s, _symbol->name, _symbol->ptr) == -1)
+            {
+                fprintf(stderr, "Could not add symbol %s\n", _symbol->name);
                 tcc_delete(s);
                 return NULL;
             }
@@ -119,95 +152,180 @@ TCCState* load_game_code()
     return s;
 }
 
+typedef struct
+{
+    // Functions
+    void (*main)();
+    void (*step)();
+    void (*draw)();
+
+    // Data
+    void* data_ptr;
+    size_t data_size;
+
+    // Compilation state
+    TCCState *s;
+} game_code;
+
+void load_or_reload_gamecode(game_code* code)
+{
+    TCCState *new_state = load_game_code();
+    if (new_state)
+    {
+        if (code->s)
+        {
+            tcc_delete(code->s);
+        }
+
+        code->s = new_state;
+    }
+    else
+    {
+        if (code->s)
+        {
+            fprintf(stdout, "Couldn't compile a new version. Will use old version of code ...\n");
+        }
+        else
+        {
+            fprintf(stdout, "Couldn't compile ...\n");
+            return;
+        }
+    }
+
+    size_t* ptr = (size_t*) tcc_get_symbol(code->s, "game_data_size");
+    if (!ptr)
+    {
+        fprintf(stderr, "Could not find symbol game_data_size\n");
+        return;
+    }
+
+    size_t new_game_data_size = (*ptr);
+
+    if (!code->data_ptr || new_game_data_size!=code->data_size)
+    {
+
+        code->data_size = new_game_data_size;
+
+        if (code->data_ptr)
+            free(code->data_ptr);
+
+        fprintf(stderr, "Allocating %d b of data for the game\n", (int)code->data_size);
+        
+        code->data_ptr = (void*) calloc(code->data_size, 0);
+
+        if (!code->data_ptr)
+        {
+            fprintf(stderr, "Could not re-allocate memory for game\n");
+            return;
+        }
+    }
+
+    void ** data_symbol = tcc_get_symbol(code->s, "game_data");
+    if (!data_symbol)
+    {
+        fprintf(stderr, "Could not find game_data symbol\n");
+        return;
+    }
+    
+    *data_symbol = code->data_ptr;
+
+    /* get entry symbol */
+    code->main = tcc_get_symbol(code->s, "main");
+    code->step = tcc_get_symbol(code->s, "step");
+    code->draw = tcc_get_symbol(code->s, "draw");
+}
 
 int main(int argc, char **argv)
 {
-    TCCState *s = NULL;
-    int (*game_main)();
+    SDL_GLContext oglContext;
+
+    game_code code = {0};
+    SDL_Window* window = NULL;
+
+    SDL_Surface* screenSurface = NULL;
+
+    if (SDL_Init(SDL_INIT_VIDEO) < 0)
+    {
+        fprintf(stderr, "SDL could not init. Error : %s\n", SDL_GetError());
+        exit(-1);
+    }
+
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 ); 
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+
+    window = SDL_CreateWindow(
+                "Djinn Engine", 
+                SDL_WINDOWPOS_UNDEFINED, 
+                SDL_WINDOWPOS_UNDEFINED, 
+                800, 600, SDL_WINDOW_OPENGL);
+
+    if (window == NULL)
+    {
+        fprintf(stderr, "SDL could not create window. Error : %s\n", SDL_GetError());
+        exit(-1);
+    }
+
+    oglContext = SDL_GL_CreateContext(window);
+
+    if (oglContext == NULL)
+    {
+        fprintf(stderr, "OpenGL context could not be created. Error : %s\n", SDL_GetError());
+        exit(-1);
+    }
+
+    if( SDL_GL_SetSwapInterval( 1 ) < 0 ) 
+    { 
+        fprintf(stderr, "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() ); 
+    }
+
+    uGlLoadGL(&SDL_GL_GetProcAddress);
+
+    djn_graph_init();
+
+    load_or_reload_gamecode(&code);
 
     size_t game_data_size = 0;
     void* game_data = NULL;
     void** game_data_symbol = NULL;
 
     char c = 0;
-
-    while (c != 'q')
+    int quit = 0;
+    
+    while (quit == 0)
     {
-        TCCState *new_state = load_game_code();
-        if (new_state)
-        {
-            if (s)
-            {
-                tcc_delete(s);
-            }
-
-            s = new_state;
-        }
-        else
-        {
-            if (s)
-            {
-                fprintf(stdout, "Couldn't compile a new version. Will use old version of code ...\n");
-            }
-            else
-            {
-                fprintf(stdout, "Couldn't compile. Press enter to continue ...\n");
-
-                c = getc(stdin);
-                continue;
-            }
-
-        }
-
-        /* get entry symbol */
-        game_main = tcc_get_symbol(s, "main");
-        if (!game_main)
-        {
-            fprintf(stderr, "Could not find main\n");
-            return -5;
-        }
-
-        size_t* ptr = (size_t*) tcc_get_symbol(s, "game_data_size");
-        if (!ptr)
-        {
-            fprintf(stderr, "Could not find symbol game_data_size\n");
-            return -6;
-        }
-
-        size_t new_game_data_size = (*ptr);
         
-
-        if (!game_data || new_game_data_size!=game_data_size)
-        {
-
-            game_data_size = new_game_data_size;
-
-            if (game_data)
-                free(game_data);
-
-            fprintf(stderr, "Allocating %d b of data for the game\n", (int)game_data_size);
-            
-            game_data = (void*) malloc(game_data_size);
-
-            if (!game_data)
-            {
-                fprintf(stderr, "Could not re-allocate memory for game\n");
-                return -6;
-            }
-        }
-
-        game_data_symbol = tcc_get_symbol(s, "game_data");
-
-        *game_data_symbol = (void*) game_data;
-
         /* run the code */
-        game_main();
-        fprintf(stdout, "Waiting for input ...\n");
-        c = getc(stdin);
+
+        while(!quit)
+        {
+            SDL_Event e;
+            while (SDL_PollEvent(&e) != 0)
+            {
+                if (e.type == SDL_QUIT)
+                {
+                    quit = 1;
+                }
+
+                if (e.type == SDL_KEYDOWN)
+                {
+                    if (e.key.keysym.sym == SDLK_F11)
+                    {
+                        load_or_reload_gamecode(&code);
+                        fprintf(stdout, "Code reloaded\n");
+                    }
+                }
+            }
+            djn_graph_draw();
+            if (code.main) code.main();
+            if (code.step) code.step();
+            if (code.draw) code.draw();
+
+            SDL_GL_SwapWindow( window );
+        }
     }
 
     /* delete the state */
-    tcc_delete(s);
+    tcc_delete(code.s);
 
     return 0;
 }
