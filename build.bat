@@ -1,38 +1,21 @@
 @echo off
+setlocal
 
-echo %time%
+reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" | find /i "x86" > NUL && (set ARCH=x86) || (set ARCH=x64)
 
-set GAME_NAME=win32_platform
+set TCC=tcc
+set CC=%TCC%\tcc.exe
+set SDL=sdl
 
-rem === Common Stuff ===
-set COMMON_FLAGS=/Zi /INCREMENTAL:NO -FC /nologo
-    rem force single non virtual inheritance
-    set COMMON_FLAGS=%COMMON_FLAGS% /vms
-set COMMON_LINK=/INCREMENTAL:NO
+set SRC=djn_engine.c
 
-rem == DLL Config ===
-set DLL_SOURCES=../src/game.all.cpp
-set DLL_FLAGS=%COMMON_FLAGS% /Fe:game.dll /DLL /LDd
+echo %CC%
 
-rem === Host Config ===
-set LIBS=Gdi32.lib kernel32.lib user32.lib Shell32.lib Winmm.lib
-set EXE_NAME=%GAME_NAME%.exe
+set PATH=%PATH%;%SDL%\lib\%ARCH%
 
-IF NOT EXIST %~dp0build mkdir %~dp0build
-IF NOT EXIST %~dp0build/data mkdir %~dp0build/data
-call build.data.bat
+REM %CC% -E -DSDL_MAIN_HANDLED -I%SDL%\include -L%SDL%\lib\%ARCH% -lSDL2 test.c > debug.c
 
-pushd %~dp0build
-IF NOT EXIST tmp mkdir tmp
+REM %CC% -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -L%SDL%\lib\%ARCH% -lSDL2 -run test.c
 
-del /Q *.pdb > NUL 2> NUL
-@echo on
-cl /D_GLFW_WIN32 %DLL_FLAGS% %DLL_SOURCES% /link %COMMON_LINK% /PDB:game.%random%.pdb
-@echo === Finished building game.dll at %time%
-cl /Fe%EXE_NAME% %COMMON_FLAGS%  /D_GLFW_WIN32 ../src/win32_platform.cpp ../src/external/external.all.c %LIBS% /link %COMMON_LINK% /PDB:%GAME_NAME%.%random%.pdb
-@echo off
-echo %time%
-popd
-
-rem build\win32_platform.exe
-
+%CC% -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%tcc%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -run %SRC%
+rem %CC% -E -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%tcc%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 %SRC%

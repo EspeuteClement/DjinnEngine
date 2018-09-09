@@ -1,3 +1,2 @@
-build/
-test/
-*.sublime*
+.vs/
+debug.c
