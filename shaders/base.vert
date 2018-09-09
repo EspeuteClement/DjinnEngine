@@ -4,11 +4,16 @@
     precision mediump float;
 #endif
 
-in vec3 pos;
+//uniform mat4 MVP;
+attribute vec3 vPos;
+attribute vec4 vCol;
+attribute vec2 vTexCoord;
+varying vec2 texcoord;
+varying vec4 color;
 
 void main()
 {
-    gl_Position.xyz = pos;
-    gl_Position.w = 1.0;
+    texcoord = vTexCoord;
+    gl_Position = vec4(vPos, 1.0);
+    color = vCol;
 }
-

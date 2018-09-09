@@ -12,6 +12,7 @@
 
 #include "ugl/ugl.c"
 #include "djn_graph.c"
+#include "djn_debug.c"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
@@ -251,7 +252,7 @@ int main(int argc, char **argv)
     }
 
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 ); 
-    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 1 );
+    SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
 
     window = SDL_CreateWindow(
                 "Djinn Engine", 
