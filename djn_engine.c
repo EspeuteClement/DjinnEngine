@@ -6,12 +6,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include "djn_graph.c"
+
 #include <SDL.h>
 
 #include "libtcc.h"
 
 #include "ugl/ugl.c"
-#include "djn_graph.c"
 #include "djn_debug.c"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
@@ -63,9 +64,15 @@ TCCState* load_game_code()
         const char* name;
     } symbol;
 
-    const symbol _ugl_symbols[] =
+    /*const symbol _ugl_symbols[] =
     {
         #include "ugl/ugl.incl"
+    };*/
+
+    const symbol _symbols[] =
+    {
+        {draw_triangle, "draw_triangle"},
+        {draw_quad, "draw_quad"},
     };
 
     s = tcc_new();
@@ -97,9 +104,9 @@ TCCState* load_game_code()
         }
 
         // Add all ugl symbols
-        for (int i = 0; i < sizeof_array(_ugl_symbols); i++)
+        for (int i = 0; i < sizeof_array(_symbols); i++)
         {
-            const symbol * _symbol = &_ugl_symbols[i];
+            const symbol * _symbol = &_symbols[i];
             if (tcc_add_symbol(s, _symbol->name, _symbol->ptr) == -1)
             {
                 fprintf(stderr, "Could not add symbol %s\n", _symbol->name);
@@ -258,7 +265,7 @@ int main(int argc, char **argv)
                 "Djinn Engine", 
                 SDL_WINDOWPOS_UNDEFINED, 
                 SDL_WINDOWPOS_UNDEFINED, 
-                800, 600, SDL_WINDOW_OPENGL);
+                SCREEN_W, SCREEN_H, SDL_WINDOW_OPENGL);
 
     if (window == NULL)
     {

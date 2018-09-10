@@ -2,20 +2,14 @@
 #include <assert.h>
 #include "djn_debug.h"
 #include <memory.h>
-//#include "external/linmath.h"
 
-static const GLfloat g_vertex_buffer_data[] = {
-   -1.0f, -1.0f, 0.0f,
-   1.0f, -1.0f, 0.0f,
-   0.0f,  1.0f, 0.0f,
-};
+#include "djn_graph.h"
+#include "external/linmath.h"
 
-typedef struct 
-{
-	float x,y,z;
-	float r,g,b,a;
-	float u, v;
-} vertex_data;
+#include <SDL.h>
+
+#define TARGET_WIDTH SCREEN_W
+#define TARGET_HEIGHT SCREEN_H
 
 #define MAX_VERTEX (200 * 6)
 struct
@@ -29,6 +23,8 @@ GLuint vao;
 
 GLuint program;
 GLuint vertexbuffer;
+
+GLuint mvp_location;
 
 void djn_graph_init()
 {
@@ -47,7 +43,7 @@ void djn_graph_init()
     glGenBuffers(1, &vbo); 
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    //GLuint mvp_location = glGetUniformLocation(program, "MVP");
+    GLuint mvp_location = glGetUniformLocation(program, "MVP");
     GLuint vpos_location = glGetAttribLocation(program, "vPos"); 
     GLuint vcol_location = glGetAttribLocation(program, "vCol");
     GLuint vtex_location = glGetAttribLocation(program, "vTexCoord");
@@ -70,7 +66,7 @@ void djn_graph_init()
 	glEnable (GL_BLEND); glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void push_triangle(const vertex_data* v1, const vertex_data* v2, const vertex_data* v3)
+void draw_triangle(const vertex_data* v1, const vertex_data* v2, const vertex_data* v3)
 {
     assert(vertex_buffer.count+3 < MAX_VERTEX);
 
@@ -82,7 +78,7 @@ void push_triangle(const vertex_data* v1, const vertex_data* v2, const vertex_da
     vertex_buffer.count ++;
 }
 
-void push_quad(float x, float y, float z, float w, float h, float ox, float oy, float ow, float oh)
+void draw_quad(float x, float y, float z, float w, float h, float ox, float oy, float ow, float oh)
 {
     float u1 = ox;
     float u2 = ow;
@@ -97,7 +93,7 @@ void push_quad(float x, float y, float z, float w, float h, float ox, float oy, 
         vertex_data s1 = {   x, y, 	z, 1.f, 1.f, 1.f, 1.f,      u1, v1 };
         vertex_data s2 = {   x, y2, z, 1.f, 1.f, 1.f, 1.f,     u1, v2 };
         vertex_data s3 = {   x2, y2,z, 1.f, 1.f, 1.f, 1.f,    u2, v2 };
-        push_triangle
+        draw_triangle
         (
             &s1,
             &s2,
@@ -110,7 +106,7 @@ void push_quad(float x, float y, float z, float w, float h, float ox, float oy, 
         vertex_data s2 = {   x2, y, z, 1.f, 1.f, 1.f, 1.f,     u2, v1 };
         vertex_data s3 = {   x2, y2,z, 1.f, 1.f, 1.f, 1.f,    u2, v2 };
 
-        push_triangle
+        draw_triangle
         (
             &s1,
             &s2,
@@ -119,13 +115,23 @@ void push_quad(float x, float y, float z, float w, float h, float ox, float oy, 
     }
 }
 
-
 void djn_graph_draw()
 {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glUseProgram(program);
+    
+    float ratio;
+    int width, height;
+    mat4x4 m, p, mvp;
 
-	push_quad(0.25, 0.25, 0.0, 0.25, 0.25, 0.0,0.0,0.0,0.0);
+    ratio = TARGET_HEIGHT / (float) TARGET_WIDTH;
+    glViewport(0, 0, TARGET_WIDTH, TARGET_HEIGHT);
+    mat4x4_identity(m);
+
+    mat4x4_ortho(p, 0, TARGET_WIDTH, TARGET_HEIGHT, 0, 0, 1.f);
+    mat4x4_mul(mvp, p, m);
+    glUniformMatrix4fv(mvp_location, 1, GL_FALSE, (const GLfloat*) mvp);
+
     glBindVertexArray(vao);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 

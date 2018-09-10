@@ -1,53 +1,22 @@
-// SDL2 Hello, World!
-// This should display a white screen for 2 seconds
-// compile with: clang++ main.cpp -o hello_sdl2 -lSDL2
-// run with: ./hello_sdl2
 #include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#define SDL_DISABLE_IMMINTRIN_H
-#include <SDL.h>
-
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#include <stdint.h>
+#include "djn_graph.h"
 
 typedef struct
 {
-  int data1;
-  int data2;
-  uint16_t data3;
+  int x;
+  int y;
 } str;
 
-size_t game_data_size = sizeof(str);
+const size_t game_data_size = sizeof(str);
 str* game_data = NULL;
 
 void step() {
-  game_data->data1 ++;
-  fprintf(stdout, "This is a new code : %d\n", game_data->data1);
+	game_data->x = (game_data->x + 1) % SCREEN_W;
+	//game_data->y = (game_data->y + 1) % SCREEN_H;
 }
 
-
-
-  /*SDL_Window* window = NULL;
-  SDL_Surface* screenSurface = NULL;
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
-    return 1;
-  }
-  window = SDL_CreateWindow(
-			    "hello_sdl2",
-			    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			    SCREEN_WIDTH, SCREEN_HEIGHT,
-			    SDL_WINDOW_SHOWN
-			    );
-  if (window == NULL) {
-    fprintf(stderr, "could not create window: %s\n", SDL_GetError());
-    return 1;
-  }
-  screenSurface = SDL_GetWindowSurface(window);
-  SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0xFF, 0xFF, 0xFF));
-  SDL_UpdateWindowSurface(window);
-  SDL_Delay(2000);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
-  return 0;*/
+void draw()
+{
+	draw_quad(game_data->x,game_data->y,0,64,64,0,0,0,0);
+}
