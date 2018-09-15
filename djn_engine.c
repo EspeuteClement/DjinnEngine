@@ -14,7 +14,8 @@
 
 #include "ugl/ugl.c"
 #include "djn_debug.c"
-#include "djn_imgui.c"
+
+#include "cimgui/djn_imgui.h"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
@@ -360,13 +361,14 @@ int main(int argc, char **argv)
             //printf("DisplaySize %d %d\n", (int)io->DisplaySize.x, (int)io->DisplaySize.y);
             glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
 
-            ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
+            djn_imgui_draw_data(igGetDrawData());
             SDL_GL_SwapWindow( window );
         }
     }
 
     //igDestroyContext(struct ImGuiContext *ctx)
-    ImGui_ImplOpenGL3_Shutdown();
+    
+    djn_imgui_deinit();
     /* delete the state */
     tcc_delete(code.s);
 
