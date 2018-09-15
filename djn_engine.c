@@ -14,6 +14,7 @@
 
 #include "ugl/ugl.c"
 #include "djn_debug.c"
+#include "djn_imgui.c"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
@@ -288,7 +289,7 @@ int main(int argc, char **argv)
 
     uGlLoadGL(&SDL_GL_GetProcAddress);
 
-    djn_graph_init();
+    //djn_graph_init();
 
     load_or_reload_gamecode(&code);
 
@@ -298,7 +299,10 @@ int main(int argc, char **argv)
 
     char c = 0;
     int quit = 0;
-    
+
+    djn_imgui_init(window);
+    ImGui_ImplOpenGL3_Init("#version 130");
+
     while (quit == 0)
     {
         
@@ -309,6 +313,11 @@ int main(int argc, char **argv)
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0)
             {
+                if (ImGui_ImplSDL2_ProcessEvent(&e))
+                {
+                    continue;
+                }
+
                 if (e.type == SDL_QUIT)
                 {
                     quit = 1;
@@ -323,15 +332,48 @@ int main(int argc, char **argv)
                     }
                 }
             }
-            djn_graph_draw();
+            ImGui_ImplOpenGL3_NewFrame();
+            djn_imgui_new_frame();
+            igNewFrame();
+
+
+            //djn_graph_draw();
             if (code.main) code.main();
             if (code.step) code.step();
-            if (code.draw) code.draw();
+            //if (code.draw) code.draw();
 
+            static bool open = true;
+            igSetNextWindowPos((ImVec2){400,400}, 0, (ImVec2){0,0});
+            igBegin("Hello", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+                igText("Hello world");
+                igText("Hello world");
+            igEnd();
+
+            igBegin("Hello 2", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+                igText("Hello world");
+                igText("Hello world");
+                igText("Hello world");
+                igText("Hello world");
+                igText("Hello world");
+            igEnd();
+            igShowDemoWindow(NULL);
+
+            igRender();
+
+            //SDL_GL_MakeCurrent(window, gl_context);
+            struct ImGuiIO* io = igGetIO();
+            //printf("DisplaySize %d %d\n", (int)io->DisplaySize.x, (int)io->DisplaySize.y);
+            glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
+            glClearColor(127,127,0,255);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
             SDL_GL_SwapWindow( window );
         }
     }
 
+    //igDestroyContext(struct ImGuiContext *ctx)
+    ImGui_ImplOpenGL3_Shutdown();
     /* delete the state */
     tcc_delete(code.s);
 

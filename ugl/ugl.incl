@@ -71,6 +71,7 @@ _T(void         )   _F( glFramebufferRenderbuffer   )   _P(( GLenum target,  GLe
 _T(void         )   _F( glFramebufferTexture        )   _P(( GLenum target,GLenum attachment,GLuint texture,GLint level))_END
 _T(void 		)	_F(	glDrawBuffers				)	_P(( GLsizei n, const GLenum *bufs))_END
 _T(void 		)	_F(	glFramebufferTexture2D		)	_P(( GLenum target, GLenum attachment, GLenum textarget, GLuint texture, GLint level))_END
+_T(void			) 	_F(glClearColor					)	_P((GLclampf red,  GLclampf green,  GLclampf blue,  GLclampf alpha))_END
 
 
 #undef _T

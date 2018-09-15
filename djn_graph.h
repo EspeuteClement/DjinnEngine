@@ -1,8 +1,8 @@
 #ifndef _DJN_GRAPH_H_
 #define _DJN_GRAPH_H_
 
-#define SCREEN_W 400
-#define SCREEN_H 300
+#define SCREEN_W 800
+#define SCREEN_H 600
 
 typedef struct 
 {

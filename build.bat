@@ -17,5 +17,5 @@ REM %CC% -E -DSDL_MAIN_HANDLED -I%SDL%\include -L%SDL%\lib\%ARCH% -lSDL2 test.c 
 
 REM %CC% -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -L%SDL%\lib\%ARCH% -lSDL2 -run test.c
 
-%CC% -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%tcc%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -run %SRC%
-rem %CC% -E -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%tcc%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 %SRC%
+%CC% -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%tcc%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -Lcimgui -lcimgui -run %SRC% 
+rem %CC% -E -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%tcc%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -Lcimgui -lcimgui %SRC% 
