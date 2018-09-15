@@ -18,5 +18,5 @@ REM %CC% -E -DSDL_MAIN_HANDLED -I%SDL%\include -L%SDL%\lib\%ARCH% -lSDL2 test.c 
 
 REM %CC% -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -L%SDL%\lib\%ARCH% -lSDL2 -run test.c
 
-%CC% -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%TCC%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -Lcimgui -lcimgui  %ROOT%\cimgui\djn_imgui.c -run %SRC% 
+%CC% -o djn_engine.exe -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%TCC%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -L%ROOT%\cimgui -lcimgui %ROOT%\cimgui\djn_imgui.c %SRC% 
 rem %CC% -E -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%tcc%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -Lcimgui -lcimgui %SRC% 
