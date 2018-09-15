@@ -9,30 +9,81 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define IM_OFFSETOF(_TYPE,_MEMBER)  ((size_t)&(((_TYPE*)0)->_MEMBER))           // Offset of _MEMBER within _TYPE. Standardized as offsetof() in modern C++.
 
-
+// SDL data
 static SDL_Window*  g_Window = NULL;
 static Uint64       g_Time = 0;
 static bool         g_MousePressed[3] = { false, false, false };
 static SDL_Cursor*  g_MouseCursors[ImGuiMouseCursor_COUNT] = { 0 };
 static char*        g_ClipboardTextData = NULL;
 
+// OpenGL Data
+static char         g_GlslVersionString[32] = "";
+static GLuint       g_FontTexture = 0;
+static GLuint       g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
+static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
+static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
+static unsigned int g_VboHandle = 0, g_ElementsHandle = 0;
 
-static bool    ImGui_ImplSDL2_Init(SDL_Window* window);
+static ImGuiContext* igContext = NULL;
+
+// Local functions definitions
+static bool         ImGui_ImplSDL2_Init(SDL_Window* window);
+static const char*  ImGui_ImplSDL2_GetClipboardText(void* data);
+static void         ImGui_ImplSDL2_SetClipboardText(void* data, const char* text);
+static bool         ImGui_ImplSDL2_Init(SDL_Window* window);
+static void         ImGui_ImplSDL2_UpdateMouseCursor();
+static void         ImGui_ImplSDL2_UpdateMousePosAndButtons();
+
+
+static int          ImGui_ImplOpenGL3_CreateDeviceObjects();
+static void         ImGui_ImplOpenGL3_DestroyDeviceObjects();
+static int          ImGui_ImplOpenGL3_Init(const char* glsl_version);
+static void         ImGui_ImplOpenGL3_Shutdown();
+
 
 void djn_imgui_init(SDL_Window* window)
 {
-    igCreateContext(NULL);
+    igContext = igCreateContext(NULL);
     ImGui_ImplSDL2_Init(window);
-
-
+    ImGui_ImplOpenGL3_Init("#version 130");
 }
 
 void djn_imgui_deinit()
 {
-
+    igDestroyContext(igContext);
 }
 
-static const char* ImGui_ImplSDL2_GetClipboardText(void* data)
+void djn_imgui_new_frame()
+{
+    struct ImGuiIO* io =  igGetIO();
+
+    if (!g_FontTexture)
+        ImGui_ImplOpenGL3_CreateDeviceObjects();
+
+    //IM_ASSERT(io.Fonts->IsBuilt());     // Font atlas needs to be built, call renderer _NewFrame() function e.g. ImGui_ImplOpenGL3_NewFrame() 
+
+    // Setup display size (every frame to accommodate for window resizing)
+    int w, h;
+    int display_w, display_h;
+    SDL_GetWindowSize(g_Window, &w, &h);
+    SDL_GL_GetDrawableSize(g_Window, &display_w, &display_h);
+    io->DisplaySize = (struct ImVec2){w, h};
+    io->DisplayFramebufferScale = (struct ImVec2){w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0};
+    // Setup time step (we don't use SDL_GetTicks() because it is using millisecond resolution)
+    static uint64_t frequency = 0;
+    if (frequency == 0)
+        frequency = SDL_GetPerformanceFrequency();
+    Uint64 current_time = SDL_GetPerformanceCounter();
+    io->DeltaTime = g_Time > 0 ? (float)((double)(current_time - g_Time) / frequency) : (float)(1.0f / 60.0f);
+    g_Time = current_time;
+
+
+    ImGui_ImplSDL2_UpdateMousePosAndButtons();
+    ImGui_ImplSDL2_UpdateMouseCursor();
+}
+
+
+const char* ImGui_ImplSDL2_GetClipboardText(void* data)
 {
     if (g_ClipboardTextData)
         SDL_free(g_ClipboardTextData);
@@ -45,7 +96,7 @@ static void ImGui_ImplSDL2_SetClipboardText(void* data, const char* text)
     SDL_SetClipboardText(text);
 }
 
-bool ImGui_ImplSDL2_ProcessEvent(SDL_Event* event)
+bool djn_imgui_process_events(SDL_Event* event)
 {
     ImGuiIO* io = igGetIO();
     switch (event->type)
@@ -163,7 +214,7 @@ static void ImGui_ImplSDL2_UpdateMouseCursor()
     }
 }
 
-static void ImGui_ImplSDL2_UpdateMousePosAndButtons()
+void ImGui_ImplSDL2_UpdateMousePosAndButtons()
 {
     ImGuiIO* io = igGetIO();
 
@@ -204,39 +255,6 @@ static void ImGui_ImplSDL2_UpdateMousePosAndButtons()
 #endif
 }
 
-void djn_imgui_new_frame()
-{
-    struct ImGuiIO* io =  igGetIO();
-    //IM_ASSERT(io.Fonts->IsBuilt());     // Font atlas needs to be built, call renderer _NewFrame() function e.g. ImGui_ImplOpenGL3_NewFrame() 
-
-    // Setup display size (every frame to accommodate for window resizing)
-    int w, h;
-    int display_w, display_h;
-    SDL_GetWindowSize(g_Window, &w, &h);
-    SDL_GL_GetDrawableSize(g_Window, &display_w, &display_h);
-    io->DisplaySize = (struct ImVec2){w, h};
-    io->DisplayFramebufferScale = (struct ImVec2){w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0};
-    // Setup time step (we don't use SDL_GetTicks() because it is using millisecond resolution)
-    /*static Uint64 frequency = SDL_GetPerformanceFrequency();
-    Uint64 current_time = SDL_GetPerformanceCounter();
-    io.DeltaTime = g_Time > 0 ? (float)((double)(current_time - g_Time) / frequency) : (float)(1.0f / 60.0f);
-    g_Time = current_time;*/
-
-    ImGui_ImplSDL2_UpdateMousePosAndButtons();
-    ImGui_ImplSDL2_UpdateMouseCursor();
-}
-
-
-
-// OpenGL Data
-static char         g_GlslVersionString[32] = "";
-static GLuint       g_FontTexture = 0;
-static GLuint       g_ShaderHandle = 0, g_VertHandle = 0, g_FragHandle = 0;
-static int          g_AttribLocationTex = 0, g_AttribLocationProjMtx = 0;
-static int          g_AttribLocationPosition = 0, g_AttribLocationUV = 0, g_AttribLocationColor = 0;
-static unsigned int g_VboHandle = 0, g_ElementsHandle = 0;
-
-
 // Functions
 int    ImGui_ImplOpenGL3_Init(const char* glsl_version)
 {
@@ -254,19 +272,10 @@ int    ImGui_ImplOpenGL3_Init(const char* glsl_version)
     return true;
 }
 
-void ImGui_ImplOpenGL3_DestroyDeviceObjects();
-int    ImGui_ImplOpenGL3_CreateDeviceObjects();
-
 
 void    ImGui_ImplOpenGL3_Shutdown()
 {
     ImGui_ImplOpenGL3_DestroyDeviceObjects();
-}
-
-void    ImGui_ImplOpenGL3_NewFrame()
-{
-    if (!g_FontTexture)
-        ImGui_ImplOpenGL3_CreateDeviceObjects();
 }
 
 // OpenGL3 Render function.

@@ -289,7 +289,7 @@ int main(int argc, char **argv)
 
     uGlLoadGL(&SDL_GL_GetProcAddress);
 
-    //djn_graph_init();
+    djn_graph_init();
 
     load_or_reload_gamecode(&code);
 
@@ -301,19 +301,15 @@ int main(int argc, char **argv)
     int quit = 0;
 
     djn_imgui_init(window);
-    ImGui_ImplOpenGL3_Init("#version 130");
 
     while (quit == 0)
     {
-        
-        /* run the code */
-
         while(!quit)
         {
             SDL_Event e;
             while (SDL_PollEvent(&e) != 0)
             {
-                if (ImGui_ImplSDL2_ProcessEvent(&e))
+                if (djn_imgui_process_events(&e))
                 {
                     continue;
                 }
@@ -332,15 +328,14 @@ int main(int argc, char **argv)
                     }
                 }
             }
-            ImGui_ImplOpenGL3_NewFrame();
             djn_imgui_new_frame();
             igNewFrame();
 
 
-            //djn_graph_draw();
+            djn_graph_draw();
             if (code.main) code.main();
             if (code.step) code.step();
-            //if (code.draw) code.draw();
+            if (code.draw) code.draw();
 
             static bool open = true;
             igSetNextWindowPos((ImVec2){400,400}, 0, (ImVec2){0,0});
@@ -364,8 +359,6 @@ int main(int argc, char **argv)
             struct ImGuiIO* io = igGetIO();
             //printf("DisplaySize %d %d\n", (int)io->DisplaySize.x, (int)io->DisplaySize.y);
             glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
-            glClearColor(127,127,0,255);
-            glClear(GL_COLOR_BUFFER_BIT);
 
             ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
             SDL_GL_SwapWindow( window );
