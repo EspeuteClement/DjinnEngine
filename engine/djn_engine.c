@@ -16,6 +16,7 @@
 #include "djn_debug.c"
 
 #include "cimgui/djn_imgui.h"
+#include "djn_resources.h"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
@@ -35,6 +36,7 @@ TCCState* load_game_code()
     const char * _sources[] =
     {
         "game/game_main.c",
+        "game/game_resources.c",
     };
 
     const char * _lib_paths[] =
@@ -75,6 +77,7 @@ TCCState* load_game_code()
     {
         {draw_triangle, "draw_triangle"},
         {draw_quad, "draw_quad"},
+        {resource_load_spritesheet, "resource_load_spritesheet"},
     };
 
     s = tcc_new();
@@ -169,7 +172,7 @@ TCCState* load_game_code()
 typedef struct
 {
     // Functions
-    void (*main)();
+    void (*init)();
     void (*step)();
     void (*draw)();
 
@@ -244,16 +247,80 @@ void load_or_reload_gamecode(game_code* code)
     *data_symbol = code->data_ptr;
 
     /* get entry symbol */
-    code->main = tcc_get_symbol(code->s, "main");
+    code->init = tcc_get_symbol(code->s, "init");
     code->step = tcc_get_symbol(code->s, "step");
     code->draw = tcc_get_symbol(code->s, "draw");
+
+    const int* enum_test = tcc_get_symbol(code->s, "spritesheets_count__");
+    if (enum_test)
+    {
+        game_current_texture_count = *enum_test;
+    }
+    else
+    {
+        printf("warning : spritesheets_count__ is not defined\n");
+        game_current_texture_count = 0;
+    }
+
+    game_current_spritesheet_data = tcc_get_symbol(code->s, "spritesheets_paths");
+    if (!game_current_spritesheet_data)
+    {
+        printf("warning : spritesheets_paths is not defined\n");
+        game_current_spritesheet_data = NULL;
+    }
+
+    // Free old sprite resources
+    resource_free_spritesheets();
+}
+
+typedef struct
+{
+    int quit;
+    game_code code;
+} game_state;
+
+void djn_engine_inputs(game_state* state)
+{
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0)
+    {
+        djn_imgui_process_events(&e);
+
+        if (e.type == SDL_QUIT)
+        {
+            state->quit = 1;
+        }
+
+        if (e.type == SDL_KEYDOWN)
+        {
+            if (e.key.keysym.sym == SDLK_F11)
+            {
+                load_or_reload_gamecode(&state->code);
+                fprintf(stdout, "Code reloaded\n");
+            }
+        }
+    }
+}
+
+void djn_engine_deinit()
+{
+    djn_imgui_deinit();
+    resource_free_spritesheets();
+}
+
+void djn_engine_frame_begin()
+{
+#ifdef WITH_IMGUI
+    djn_imgui_new_frame();
+    igNewFrame();
+#endif
 }
 
 int main(int argc, char **argv)
 {
     SDL_GLContext oglContext;
 
-    game_code code = {0};
+    game_state state = {0};
     SDL_Window* window = NULL;
 
     SDL_Surface* screenSurface = NULL;
@@ -296,7 +363,7 @@ int main(int argc, char **argv)
 
     djn_graph_init();
 
-    load_or_reload_gamecode(&code);
+    load_or_reload_gamecode(&state.code);
 
     size_t game_data_size = 0;
     void* game_data = NULL;
@@ -307,71 +374,47 @@ int main(int argc, char **argv)
 
     djn_imgui_init(window);
 
-    while (quit == 0)
+    if (state.code.init) state.code.init();
+
+    while(!state.quit)
     {
-        while(!quit)
-        {
-            SDL_Event e;
-            while (SDL_PollEvent(&e) != 0)
+        djn_engine_inputs(&state);
+        djn_engine_frame_begin();
+
+        djn_graph_draw();
+        if (state.code.step) state.code.step();
+        if (state.code.draw) state.code.draw();
+
+        static bool open = true;
+#ifdef WITH_IMGUI
+        igBegin("Hello", NULL, ImGuiWindowFlags_AlwaysAutoResize);
+            if(igButton("Free Textures", (ImVec2){0.0f, 0.0f}))
             {
-                djn_imgui_process_events(&e);
-
-                if (e.type == SDL_QUIT)
-                {
-                    quit = 1;
-                }
-
-                if (e.type == SDL_KEYDOWN)
-                {
-                    if (e.key.keysym.sym == SDLK_F11)
-                    {
-                        load_or_reload_gamecode(&code);
-                        fprintf(stdout, "Code reloaded\n");
-                    }
-                }
+                resource_free_spritesheets();
             }
-            djn_imgui_new_frame();
-            igNewFrame();
+            resource_load_spritesheet(0);
+            igImage((void*)(storage[0].gl_texture), (ImVec2){1024,1024},(ImVec2){0.0f,0.0f} ,(ImVec2){1.0f,1.0f},(ImVec4){1.0f,1.0f,1.0f,1.0f},(ImVec4){1.0f,1.0f,1.0f,1.0f});
+        igEnd();
 
+        igShowDemoWindow(NULL);
+#endif
+        igRender();
 
-            djn_graph_draw();
-            if (code.main) code.main();
-            if (code.step) code.step();
-            if (code.draw) code.draw();
+        //SDL_GL_MakeCurrent(window, gl_context);
+        struct ImGuiIO* io = igGetIO();
+        //printf("DisplaySize %d %d\n", (int)io->DisplaySize.x, (int)io->DisplaySize.y);
+        glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
 
-            static bool open = true;
-            igSetNextWindowPos((ImVec2){400,400}, 0, (ImVec2){0,0});
-            igBegin("Hello", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-                igText("Hello world");
-                igText("Hello world");
-            igEnd();
-
-            igBegin("Hello 2", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-                igText("Hello world");
-                igText("Hello world");
-                igText("Hello world");
-                igText("Hello world");
-                igText("Hello world");
-            igEnd();
-            igShowDemoWindow(NULL);
-
-            igRender();
-
-            //SDL_GL_MakeCurrent(window, gl_context);
-            struct ImGuiIO* io = igGetIO();
-            //printf("DisplaySize %d %d\n", (int)io->DisplaySize.x, (int)io->DisplaySize.y);
-            glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
-
-            djn_imgui_draw_data(igGetDrawData());
-            SDL_GL_SwapWindow( window );
-        }
+        djn_imgui_draw_data(igGetDrawData());
+        SDL_GL_SwapWindow( window );
+    }
+    
+    if (state.code.s)
+    {
+        tcc_delete(state.code.s);
     }
 
-    //igDestroyContext(struct ImGuiContext *ctx)
-    
-    djn_imgui_deinit();
-    /* delete the state */
-    tcc_delete(code.s);
+    djn_engine_deinit();
 
     return 0;
 }

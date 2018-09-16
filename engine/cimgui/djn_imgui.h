@@ -1,6 +1,8 @@
 #ifndef _DJN_IMGUI_H_
 #define _DJN_IMGUI_H_
 
+#define WITH_IMGUI
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <SDL.h>

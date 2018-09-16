@@ -1,0 +1,2 @@
+#define _DRAW_IMPLEMENTED_
+void EVALUATOR(OBJ_NAME, draw) (OBJ_NAME * self)

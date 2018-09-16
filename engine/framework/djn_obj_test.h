@@ -1,0 +1,2 @@
+#define _STEP_IMPLEMENTED_
+void OBJ_NAME ()
