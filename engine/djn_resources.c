@@ -1,8 +1,14 @@
 #include "djn_resources.h"
 #include "djn_assert.h"
+#include "djn_alloc.h"
 
 #define STBI_NO_SIMD
 #define STBI_NO_HDR
+
+#define STBI_MALLOC djn_alloc
+#define STBI_FREE djn_free
+#define STBI_REALLOC djn_realloc
+
 #define STB_IMAGE_IMPLEMENTATION
 #include "external/stb_image.h"
 #include "djn_debug.h"
@@ -42,8 +48,8 @@ void resource_free_spritesheets()
 	int i = 0;
 	while(storage[i].pointer != NULL && i < MAX_TEXTURES)
 	{
-		printf("Freeing pointer %p\n", storage[i].pointer);
-		//stbi_image_free(storage[i].pointer);
+		//printf("Freeing pointer %p\n", storage[i].pointer);
+		stbi_image_free(storage[i].pointer);
 		glDeleteTextures(1,&storage[i].gl_texture);
 
 		storage[i].pointer = NULL;

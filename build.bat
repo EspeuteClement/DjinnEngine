@@ -10,7 +10,7 @@ set CC=%TCC%\tcc.exe
 set SDL=%ROOT%\sdl
 
 set MAIN=%ROOT%\djn_engine.c
-set SRC= %ROOT%\cimgui\djn_imgui.c %ROOT%\djn_resources.c
+set SRC= %ROOT%\cimgui\djn_imgui.c %ROOT%\djn_resources.c %ROOT%\djn_alloc.c
 echo %CC%
 
 set PATH=%PATH%;%SDL%\lib\%ARCH%

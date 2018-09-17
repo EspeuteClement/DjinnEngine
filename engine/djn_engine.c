@@ -17,6 +17,7 @@
 
 #include "cimgui/djn_imgui.h"
 #include "djn_resources.h"
+#include "djn_alloc.h"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
@@ -224,11 +225,11 @@ void load_or_reload_gamecode(game_code* code)
         code->data_size = new_game_data_size;
 
         if (code->data_ptr)
-            free(code->data_ptr);
+            djn_free(code->data_ptr);
 
         fprintf(stderr, "Allocating %d b of data for the game\n", (int)code->data_size);
         
-        code->data_ptr = (void*) calloc(code->data_size, 0);
+        code->data_ptr = (void*) djn_calloc(code->data_size, 0);
 
         if (!code->data_ptr)
         {
@@ -365,10 +366,6 @@ int main(int argc, char **argv)
 
     load_or_reload_gamecode(&state.code);
 
-    size_t game_data_size = 0;
-    void* game_data = NULL;
-    void** game_data_symbol = NULL;
-
     char c = 0;
     int quit = 0;
 
@@ -387,14 +384,24 @@ int main(int argc, char **argv)
 
         static bool open = true;
 #ifdef WITH_IMGUI
-        igBegin("Hello", NULL, ImGuiWindowFlags_AlwaysAutoResize);
-            if(igButton("Free Textures", (ImVec2){0.0f, 0.0f}))
+        if(igBegin("Hello", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            int value = igButton("Free Textures", (ImVec2){0.0f, 0.0f});
+            if(value == true)
             {
+                printf("Button pressed wtf\n");
                 resource_free_spritesheets();
+            }
+            else if(value != false)
+            {
+                printf("Button wtf %d\n", value);
             }
             resource_load_spritesheet(0);
             igImage((void*)(storage[0].gl_texture), (ImVec2){1024,1024},(ImVec2){0.0f,0.0f} ,(ImVec2){1.0f,1.0f},(ImVec4){1.0f,1.0f,1.0f,1.0f},(ImVec4){1.0f,1.0f,1.0f,1.0f});
+        }
         igEnd();
+
+
 
         igShowDemoWindow(NULL);
 #endif
@@ -409,12 +416,19 @@ int main(int argc, char **argv)
         SDL_GL_SwapWindow( window );
     }
     
+    if (state.code.data_ptr)
+    {
+        djn_free(state.code.data_ptr);
+    }
+
     if (state.code.s)
     {
         tcc_delete(state.code.s);
     }
 
     djn_engine_deinit();
+
+    djn_memory_leak_report();
 
     return 0;
 }
