@@ -11,6 +11,10 @@ typedef struct
 	float u, v;
 } vertex_data;
 
+void djn_graph_init();
+void djn_graph_draw();
+
+
 void draw_triangle(const vertex_data* v1, const vertex_data* v2, const vertex_data* v3);
 void draw_quad(float x, float y, float z, float w, float h, float ox, float oy, float ow, float oh);
 

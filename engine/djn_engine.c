@@ -6,21 +6,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "djn_graph.c"
-
 #include <SDL.h>
 
+#ifndef DJN_NO_RELOAD
 #include "libtcc.h"
-
-#include "ugl/ugl.c"
-#include "djn_debug.c"
+#else
+#include "djn_game.h"
+#endif
 
 #include "cimgui/djn_imgui.h"
 #include "djn_resources.h"
 #include "djn_alloc.h"
+#include "djn_graph.h"
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
+#ifndef DJN_NO_RELOAD
 TCCState* load_game_code()
 {
     TCCState *s = NULL;
@@ -169,6 +170,7 @@ TCCState* load_game_code()
 
     return s;
 }
+#endif
 
 typedef struct
 {
@@ -182,11 +184,16 @@ typedef struct
     size_t data_size;
 
     // Compilation state
+#ifndef DJN_NO_RELOAD
     TCCState *s;
+#endif
 } game_code;
 
 void load_or_reload_gamecode(game_code* code)
 {
+    // TCC loading
+#ifndef DJN_NO_RELOAD
+
     TCCState *new_state = load_game_code();
     if (new_state)
     {
@@ -272,6 +279,31 @@ void load_or_reload_gamecode(game_code* code)
 
     // Free old sprite resources
     resource_free_spritesheets();
+#else   // Non TCC loading
+        code->data_size = game_data_size;
+
+        if (code->data_ptr)
+            djn_free(code->data_ptr);
+
+        fprintf(stderr, "Allocating %d b of data for the game\n", (int)code->data_size);
+        
+        code->data_ptr = (void*) djn_calloc(code->data_size, 0);
+
+        if (!code->data_ptr)
+        {
+            fprintf(stderr, "Could not re-allocate memory for game\n");
+            return;
+        }
+
+		game_data = code->data_ptr;
+
+		code->init = &init;
+		code->step = &step;
+		code->draw = &draw;
+
+		game_current_texture_count = spritesheets_count__;
+		game_current_spritesheet_data = spritesheets_paths;
+#endif
 }
 
 typedef struct
@@ -285,8 +317,9 @@ void djn_engine_inputs(game_state* state)
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0)
     {
+#ifndef DJN_NO_IMGUI
         djn_imgui_process_events(&e);
-
+#endif
         if (e.type == SDL_QUIT)
         {
             state->quit = 1;
@@ -294,18 +327,22 @@ void djn_engine_inputs(game_state* state)
 
         if (e.type == SDL_KEYDOWN)
         {
+#ifndef DJN_NO_RELOAD
             if (e.key.keysym.sym == SDLK_F11)
             {
                 load_or_reload_gamecode(&state->code);
                 fprintf(stdout, "Code reloaded\n");
             }
+#endif
         }
     }
 }
 
 void djn_engine_deinit()
 {
+#ifndef DJN_NO_IMGUI
     djn_imgui_deinit();
+#endif
     resource_free_spritesheets();
 }
 
@@ -368,9 +405,9 @@ int main(int argc, char **argv)
 
     char c = 0;
     int quit = 0;
-
+#ifndef DJN_NO_IMGUI
     djn_imgui_init(window);
-
+#endif
     if (state.code.init) state.code.init();
 
     while(!state.quit)
@@ -382,8 +419,8 @@ int main(int argc, char **argv)
         if (state.code.step) state.code.step();
         if (state.code.draw) state.code.draw();
 
-        static bool open = true;
 #ifdef WITH_IMGUI
+		static bool open = true;
         if(igBegin("Hello", NULL, ImGuiWindowFlags_AlwaysAutoResize))
         {
             int value = igButton("Free Textures", (ImVec2){0.0f, 0.0f});
@@ -405,7 +442,9 @@ int main(int argc, char **argv)
 
         igShowDemoWindow(NULL);
 #endif
-        igRender();
+
+#ifndef DJN_NO_IMGUI
+		igRender();
 
         //SDL_GL_MakeCurrent(window, gl_context);
         struct ImGuiIO* io = igGetIO();
@@ -414,6 +453,7 @@ int main(int argc, char **argv)
 
         djn_imgui_draw_data(igGetDrawData());
         SDL_GL_SwapWindow( window );
+#endif
     }
     
     if (state.code.data_ptr)
@@ -421,10 +461,12 @@ int main(int argc, char **argv)
         djn_free(state.code.data_ptr);
     }
 
+#ifndef DJN_NO_RELOAD
     if (state.code.s)
     {
         tcc_delete(state.code.s);
     }
+#endif
 
     djn_engine_deinit();
 

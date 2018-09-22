@@ -575,7 +575,7 @@ struct ImVector
     void* Data;
 };
 typedef struct ImVector ImVector;
-struct ImNewDummy {};
+struct ImNewDummy { uint8_t dummy; };
 struct ImGuiOnceUponAFrame
 {
      int RefFrame;

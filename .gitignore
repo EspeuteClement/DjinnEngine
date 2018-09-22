@@ -1,3 +1,9 @@
 .vs/
 debug.c
 *.exe
+*.sln
+*.vcx*
+bin/
+obj/
+*.make
+Makefile

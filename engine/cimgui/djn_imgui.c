@@ -1,3 +1,4 @@
+#ifndef DJN_NO_IMGUI
 #include "djn_imgui.h"
 //#include "cimgui/cimgui.h"
 #include <SDL.h>
@@ -357,26 +358,26 @@ void    djn_imgui_draw_data(ImDrawData* draw_data)
     glEnableVertexAttribArray(g_AttribLocationPosition);
     glEnableVertexAttribArray(g_AttribLocationUV);
     glEnableVertexAttribArray(g_AttribLocationColor);
-    glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, pos));
-    glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, uv));
-    glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, col));
+    glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(struct ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, pos));
+    glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(struct ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, uv));
+    glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, col));
 
     // Draw
     ImVec2 pos = draw_data->DisplayPos;
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
-        const ImDrawList* cmd_list = draw_data->CmdLists[n];
+        const struct ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawIdx* idx_buffer_offset = 0;
 
         glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
-        glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
+        glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(struct ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
 
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
-            const ImDrawCmd* pcmd = &cmd_list->CmdBuffer.Data[cmd_i * sizeof(ImDrawCmd)];
+            const ImDrawCmd* pcmd = ((const int8_t*) cmd_list->CmdBuffer.Data)[cmd_i * sizeof(struct ImDrawCmd)];
             if (pcmd->UserCallback)
             {
                 // User callback (registered via ImDrawList::AddCallback)
@@ -693,3 +694,4 @@ void    ImGui_ImplOpenGL3_DestroyDeviceObjects()
 
     ImGui_ImplOpenGL3_DestroyFontsTexture();
 }
+#endif
