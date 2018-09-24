@@ -14,7 +14,7 @@
 #include "djn_debug.h"
 
 spritesheet_data_storage storage[MAX_TEXTURES] = {0};
-spritesheet_data* game_current_spritesheet_data = 0;
+const spritesheet_data* game_current_spritesheet_data = 0;
 
 
 gpu_texture_t 	resource_load_spritesheet(spritesheet_id_t id)
@@ -58,4 +58,4 @@ void resource_free_spritesheets()
 	}
 }
 
-extern int game_current_texture_count = 0;
+int game_current_texture_count = 0;

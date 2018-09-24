@@ -27,7 +27,7 @@ void* ___djn_realloc_log(void* ptr, size_t new_size, const char* file, int line)
 	void* new_ptr = ___djn_realloc(ptr, new_size);
 	if (ptr == NULL)
 	{
-		printf("ALLOC_LOG : +r %p r+ %s:%d\n",new_ptr,file, line);
+			printf("ALLOC_LOG : +r %p r+ %s:%d\n",new_ptr,file, line);
 	}
 	return new_ptr;
 }

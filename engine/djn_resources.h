@@ -40,7 +40,7 @@ typedef struct
 #define MAX_TEXTURES 256
 extern spritesheet_data_storage storage[MAX_TEXTURES];
 extern int game_current_texture_count;
-extern spritesheet_data* game_current_spritesheet_data;
+extern const spritesheet_data* game_current_spritesheet_data;
 
 // Resource api
 gpu_texture_t 	resource_load_spritesheet(spritesheet_id_t id); 	// Load resource into memory. Returns null if the texture doesn't exist

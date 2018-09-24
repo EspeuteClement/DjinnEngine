@@ -7,4 +7,4 @@ const spritesheet_data spritesheets_paths[spritesheets_count] =
 
 };
 
-const int spritesheets_count__ = spritesheets_count; 
+const int game_spritesheets_count = spritesheets_count; 

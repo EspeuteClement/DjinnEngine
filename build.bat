@@ -9,10 +9,9 @@ set TCC=%ROOT%\tcc
 set CC=%TCC%\tcc.exe
 set SDL=%ROOT%\sdl
 
-set MAIN=%ROOT%\djn_engine.c
-set SRC= %ROOT%\cimgui\djn_imgui.c %ROOT%\djn_resources.c %ROOT%\djn_alloc.c
+set MAIN=%ROOT%\djn_unity_build.c
 echo %CC%
 
 set PATH=%PATH%;%SDL%\lib\%ARCH%
 
-%CC% -o djn_engine.exe -DSDL_MAIN_HANDLED -D_STDINT_H_ -I%SDL%\include -I%TCC%\libtcc -L%TCC%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -L%ROOT%\cimgui -lcimgui %SRC% %MAIN% 
+%CC% -o djn_engine.exe -D_STDINT_H_ -I%ROOT% -I%SDL%\include -I%TCC%\libtcc -L%TCC%\libtcc -llibtcc -L%SDL%\lib\%ARCH% -lSDL2 -L%ROOT%\cimgui -lcimgui %MAIN% 

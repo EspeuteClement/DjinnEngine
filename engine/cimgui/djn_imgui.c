@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <float.h>
 
-#define _CRT_SECURE_NO_WARNINGS
 #define IM_OFFSETOF(_TYPE,_MEMBER)  ((size_t)&(((_TYPE*)0)->_MEMBER))           // Offset of _MEMBER within _TYPE. Standardized as offsetof() in modern C++.
 
 // SDL data
@@ -377,7 +376,7 @@ void    djn_imgui_draw_data(ImDrawData* draw_data)
 
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
-            const ImDrawCmd* pcmd = ((const int8_t*) cmd_list->CmdBuffer.Data)[cmd_i * sizeof(struct ImDrawCmd)];
+            const ImDrawCmd* pcmd = (ImDrawCmd*) ((const int8_t*) cmd_list->CmdBuffer.Data)[cmd_i * sizeof(struct ImDrawCmd)];
             if (pcmd->UserCallback)
             {
                 // User callback (registered via ImDrawList::AddCallback)

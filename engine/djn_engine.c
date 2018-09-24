@@ -19,6 +19,9 @@
 #include "djn_alloc.h"
 #include "djn_graph.h"
 
+#include "../game/game_resources.h"
+
+
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
 #ifndef DJN_NO_RELOAD
@@ -259,14 +262,14 @@ void load_or_reload_gamecode(game_code* code)
     code->step = tcc_get_symbol(code->s, "step");
     code->draw = tcc_get_symbol(code->s, "draw");
 
-    const int* enum_test = tcc_get_symbol(code->s, "spritesheets_count__");
+    const int* enum_test = tcc_get_symbol(code->s, "game_spritesheets_count");
     if (enum_test)
     {
         game_current_texture_count = *enum_test;
     }
     else
     {
-        printf("warning : spritesheets_count__ is not defined\n");
+        printf("warning : game_spritesheets_count is not defined\n");
         game_current_texture_count = 0;
     }
 
@@ -301,7 +304,7 @@ void load_or_reload_gamecode(game_code* code)
 		code->step = &step;
 		code->draw = &draw;
 
-		game_current_texture_count = spritesheets_count__;
+		game_current_texture_count = game_spritesheets_count;
 		game_current_spritesheet_data = spritesheets_paths;
 #endif
 }
@@ -452,8 +455,9 @@ int main(int argc, char **argv)
         glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
 
         djn_imgui_draw_data(igGetDrawData());
-        SDL_GL_SwapWindow( window );
 #endif
+        
+        SDL_GL_SwapWindow( window );
     }
     
     if (state.code.data_ptr)
