@@ -7,6 +7,9 @@
 #include <stdio.h>
 #include <float.h>
 
+#define TRACE fprintf(stderr, "Trace : %s(%d)\n", __FILE__, __LINE__);
+
+
 #define IM_OFFSETOF(_TYPE,_MEMBER)  ((size_t)&(((_TYPE*)0)->_MEMBER))           // Offset of _MEMBER within _TYPE. Standardized as offsetof() in modern C++.
 
 // SDL data
@@ -29,8 +32,8 @@ static ImGuiContext* igContext = NULL;
 // Local functions definitions
 static bool         ImGui_ImplSDL2_Init(SDL_Window* window);
 static const char*  ImGui_ImplSDL2_GetClipboardText(void* data);
-static void         ImGui_ImplSDL2_SetClipboardText(void* data, const char* text);
 static bool         ImGui_ImplSDL2_Init(SDL_Window* window);
+static void         ImGui_ImplSDL2_SetClipboardText(void* data, const char* text);
 static void         ImGui_ImplSDL2_UpdateMouseCursor();
 static void         ImGui_ImplSDL2_UpdateMousePosAndButtons();
 
@@ -283,7 +286,7 @@ void    ImGui_ImplOpenGL3_Shutdown()
 void    djn_imgui_draw_data(ImDrawData* draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-    
+    TRACE
     ImGuiIO* io = igGetIO();
     int fb_width = (int)(draw_data->DisplaySize.x * io->DisplayFramebufferScale.x);
     int fb_height = (int)(draw_data->DisplaySize.y * io->DisplayFramebufferScale.y);
@@ -316,7 +319,7 @@ void    djn_imgui_draw_data(ImDrawData* draw_data)
     GLboolean last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
     GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
     GLboolean last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-
+TRACE
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);
@@ -360,23 +363,20 @@ void    djn_imgui_draw_data(ImDrawData* draw_data)
     glVertexAttribPointer(g_AttribLocationPosition, 2, GL_FLOAT, GL_FALSE, sizeof(struct ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, pos));
     glVertexAttribPointer(g_AttribLocationUV, 2, GL_FLOAT, GL_FALSE, sizeof(struct ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, uv));
     glVertexAttribPointer(g_AttribLocationColor, 4, GL_UNSIGNED_BYTE, GL_TRUE, sizeof(struct ImDrawVert), (GLvoid*)IM_OFFSETOF(ImDrawVert, col));
-
     // Draw
     ImVec2 pos = draw_data->DisplayPos;
     for (int n = 0; n < draw_data->CmdListsCount; n++)
     {
         const struct ImDrawList* cmd_list = draw_data->CmdLists[n];
         const ImDrawIdx* idx_buffer_offset = 0;
-
         glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
         glBufferData(GL_ARRAY_BUFFER, (GLsizeiptr)cmd_list->VtxBuffer.Size * sizeof(struct ImDrawVert), (const GLvoid*)cmd_list->VtxBuffer.Data, GL_STREAM_DRAW);
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
         glBufferData(GL_ELEMENT_ARRAY_BUFFER, (GLsizeiptr)cmd_list->IdxBuffer.Size * sizeof(ImDrawIdx), (const GLvoid*)cmd_list->IdxBuffer.Data, GL_STREAM_DRAW);
-
         for (int cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
         {
-            const ImDrawCmd* pcmd = (ImDrawCmd*) ((const int8_t*) cmd_list->CmdBuffer.Data)[cmd_i * sizeof(struct ImDrawCmd)];
+            const ImDrawCmd* pcmd = (cmd_list->CmdBuffer.Data) + cmd_i * sizeof(ImDrawCmd);
             if (pcmd->UserCallback)
             {
                 // User callback (registered via ImDrawList::AddCallback)

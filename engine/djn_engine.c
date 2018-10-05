@@ -21,6 +21,7 @@
 
 #include "../game/game_resources.h"
 
+#define TRACE fprintf(stderr, "Trace : %s(%d)\n", __FILE__, __LINE__);
 
 #define sizeof_array(x) (sizeof(x)/sizeof(x[0]))
 
@@ -258,9 +259,11 @@ void load_or_reload_gamecode(game_code* code)
     *data_symbol = code->data_ptr;
 
     /* get entry symbol */
+
     code->init = tcc_get_symbol(code->s, "init");
     code->step = tcc_get_symbol(code->s, "step");
     code->draw = tcc_get_symbol(code->s, "draw");
+
 
     const int* enum_test = tcc_get_symbol(code->s, "game_spritesheets_count");
     if (enum_test)
@@ -363,14 +366,16 @@ int main(int argc, char **argv)
 
     game_state state = {0};
     SDL_Window* window = NULL;
-
     SDL_Surface* screenSurface = NULL;
+    TRACE
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         fprintf(stderr, "SDL could not init. Error : %s\n", SDL_GetError());
         exit(-1);
     }
+
+    TRACE
 
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 ); 
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
@@ -380,12 +385,14 @@ int main(int argc, char **argv)
                 SDL_WINDOWPOS_UNDEFINED, 
                 SDL_WINDOWPOS_UNDEFINED, 
                 SCREEN_W, SCREEN_H, SDL_WINDOW_OPENGL);
+    TRACE
 
     if (window == NULL)
     {
         fprintf(stderr, "SDL could not create window. Error : %s\n", SDL_GetError());
         exit(-1);
     }
+    TRACE
 
     oglContext = SDL_GL_CreateContext(window);
 
@@ -394,15 +401,18 @@ int main(int argc, char **argv)
         fprintf(stderr, "OpenGL context could not be created. Error : %s\n", SDL_GetError());
         exit(-1);
     }
+    TRACE
 
     if( SDL_GL_SetSwapInterval( 1 ) < 0 ) 
     { 
         fprintf(stderr, "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() ); 
     }
+    TRACE
 
     uGlLoadGL(&SDL_GL_GetProcAddress);
 
     djn_graph_init();
+    TRACE
 
     load_or_reload_gamecode(&state.code);
 
@@ -412,15 +422,18 @@ int main(int argc, char **argv)
     djn_imgui_init(window);
 #endif
     if (state.code.init) state.code.init();
+    TRACE
 
     while(!state.quit)
     {
         djn_engine_inputs(&state);
         djn_engine_frame_begin();
+    TRACE
 
         djn_graph_draw();
         if (state.code.step) state.code.step();
         if (state.code.draw) state.code.draw();
+    TRACE
 
 #ifdef WITH_IMGUI
 		static bool open = true;
@@ -429,7 +442,6 @@ int main(int argc, char **argv)
             int value = igButton("Free Textures", (ImVec2){0.0f, 0.0f});
             if(value == true)
             {
-                printf("Button pressed wtf\n");
                 resource_free_spritesheets();
             }
             else if(value != false)
@@ -441,10 +453,12 @@ int main(int argc, char **argv)
         }
         igEnd();
 
+    TRACE
 
 
         igShowDemoWindow(NULL);
 #endif
+    TRACE
 
 #ifndef DJN_NO_IMGUI
 		igRender();
@@ -455,15 +469,19 @@ int main(int argc, char **argv)
         glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
 
         djn_imgui_draw_data(igGetDrawData());
+    TRACE
+
 #endif
         
         SDL_GL_SwapWindow( window );
     }
+    TRACE
     
     if (state.code.data_ptr)
     {
         djn_free(state.code.data_ptr);
     }
+    TRACE
 
 #ifndef DJN_NO_RELOAD
     if (state.code.s)
@@ -471,6 +489,7 @@ int main(int argc, char **argv)
         tcc_delete(state.code.s);
     }
 #endif
+    TRACE
 
     djn_engine_deinit();
 
