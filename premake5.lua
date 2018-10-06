@@ -9,6 +9,8 @@ project "Djinn_Engine"
 	language "C"
 	targetdir "bin/%{cfg.buildcfg}"
 	
+	location ("projects/" .. _ACTION)
+
 	filter "configurations:*32"
 		architecture "x86"
 		libdirs { "engine/sdl/lib/x86", os.findlib("SLD2")}
@@ -20,7 +22,7 @@ project "Djinn_Engine"
 	
 	filter {}
 
-	files {"**.h", "**.c"}
+	files {"engine/djn_unity_build.c"}
 	removefiles {"**/tcc/**"}
 
 	includedirs { "engine/sdl/include", "engine" }

@@ -15,9 +15,9 @@ void* ___djn_alloc_log(size_t size, const char* file, int line)
 	return ptr;
 }
 
-void* ___djn_calloc_log(size_t size, uint8_t value, const char* file, int line)
+void* ___djn_calloc_log(size_t size, const char* file, int line)
 {
-	void* ptr = ___djn_calloc(size,value);
+	void* ptr = ___djn_calloc(size);
 	printf("ALLOC_LOG : +0 %p 0+ %s:%d\n",ptr,file, line);
 	return ptr;
 }
@@ -43,7 +43,7 @@ void  ___djn_free_log(void* ptr, const char* file, int line)
 	{
 		printf("ALLOC_LOG : warn : freeing null ptr here : %s:%d \n", file, line);
 	}
-	return ___djn_free(ptr);
+	___djn_free(ptr);
 }
 
 #endif
@@ -57,12 +57,12 @@ void* ___djn_alloc(size_t size)
 	return malloc(size);
 }
 
-void* ___djn_calloc(size_t size, uint8_t value)
+void* ___djn_calloc(size_t size)
 {
 	#if DJN_ALLOC_LEAK_DETECT
 		current_alloc_count++; 
 	#endif
-	return calloc(size, value);
+	return calloc(1, size); //
 }
 
 void ___djn_free(void* ptr)

@@ -293,7 +293,7 @@ void load_or_reload_gamecode(game_code* code)
 
         fprintf(stderr, "Allocating %d b of data for the game\n", (int)code->data_size);
         
-        code->data_ptr = (void*) djn_calloc(code->data_size, 0);
+        code->data_ptr = (void*) djn_calloc(code->data_size);
 
         if (!code->data_ptr)
         {
@@ -367,7 +367,6 @@ int main(int argc, char **argv)
     game_state state = {0};
     SDL_Window* window = NULL;
     SDL_Surface* screenSurface = NULL;
-    TRACE
 
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
@@ -375,7 +374,7 @@ int main(int argc, char **argv)
         exit(-1);
     }
 
-    TRACE
+    
 
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, 3 ); 
     SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, 2 );
@@ -385,14 +384,12 @@ int main(int argc, char **argv)
                 SDL_WINDOWPOS_UNDEFINED, 
                 SDL_WINDOWPOS_UNDEFINED, 
                 SCREEN_W, SCREEN_H, SDL_WINDOW_OPENGL);
-    TRACE
 
     if (window == NULL)
     {
         fprintf(stderr, "SDL could not create window. Error : %s\n", SDL_GetError());
         exit(-1);
     }
-    TRACE
 
     oglContext = SDL_GL_CreateContext(window);
 
@@ -401,18 +398,16 @@ int main(int argc, char **argv)
         fprintf(stderr, "OpenGL context could not be created. Error : %s\n", SDL_GetError());
         exit(-1);
     }
-    TRACE
 
     if( SDL_GL_SetSwapInterval( 1 ) < 0 ) 
     { 
         fprintf(stderr, "Warning: Unable to set VSync! SDL Error: %s\n", SDL_GetError() ); 
     }
-    TRACE
 
     uGlLoadGL(&SDL_GL_GetProcAddress);
 
     djn_graph_init();
-    TRACE
+    
 
     load_or_reload_gamecode(&state.code);
 
@@ -422,18 +417,17 @@ int main(int argc, char **argv)
     djn_imgui_init(window);
 #endif
     if (state.code.init) state.code.init();
-    TRACE
 
     while(!state.quit)
     {
         djn_engine_inputs(&state);
         djn_engine_frame_begin();
-    TRACE
+    
 
         djn_graph_draw();
         if (state.code.step) state.code.step();
         if (state.code.draw) state.code.draw();
-    TRACE
+    
 
 #ifdef WITH_IMGUI
 		static bool open = true;
@@ -453,12 +447,12 @@ int main(int argc, char **argv)
         }
         igEnd();
 
-    TRACE
+    
 
 
         igShowDemoWindow(NULL);
 #endif
-    TRACE
+    
 
 #ifndef DJN_NO_IMGUI
 		igRender();
@@ -469,19 +463,19 @@ int main(int argc, char **argv)
         glViewport(0, 0, (int)io->DisplaySize.x, (int)io->DisplaySize.y);
 
         djn_imgui_draw_data(igGetDrawData());
-    TRACE
+    
 
 #endif
         
         SDL_GL_SwapWindow( window );
     }
-    TRACE
+    
     
     if (state.code.data_ptr)
     {
         djn_free(state.code.data_ptr);
     }
-    TRACE
+    
 
 #ifndef DJN_NO_RELOAD
     if (state.code.s)
@@ -489,7 +483,7 @@ int main(int argc, char **argv)
         tcc_delete(state.code.s);
     }
 #endif
-    TRACE
+    
 
     djn_engine_deinit();
 

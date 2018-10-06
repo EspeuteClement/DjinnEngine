@@ -286,7 +286,7 @@ void    ImGui_ImplOpenGL3_Shutdown()
 void    djn_imgui_draw_data(ImDrawData* draw_data)
 {
     // Avoid rendering when minimized, scale coordinates for retina displays (screen coordinates != framebuffer coordinates)
-    TRACE
+    
     ImGuiIO* io = igGetIO();
     int fb_width = (int)(draw_data->DisplaySize.x * io->DisplayFramebufferScale.x);
     int fb_height = (int)(draw_data->DisplaySize.y * io->DisplayFramebufferScale.y);
@@ -319,7 +319,7 @@ void    djn_imgui_draw_data(ImDrawData* draw_data)
     GLboolean last_enable_cull_face = glIsEnabled(GL_CULL_FACE);
     GLboolean last_enable_depth_test = glIsEnabled(GL_DEPTH_TEST);
     GLboolean last_enable_scissor_test = glIsEnabled(GL_SCISSOR_TEST);
-TRACE
+
     // Setup render state: alpha-blending enabled, no face culling, no depth testing, scissor enabled, polygon fill
     glEnable(GL_BLEND);
     glBlendEquation(GL_FUNC_ADD);

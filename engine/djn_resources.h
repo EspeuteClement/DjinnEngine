@@ -46,6 +46,8 @@ extern const spritesheet_data* game_current_spritesheet_data;
 gpu_texture_t 	resource_load_spritesheet(spritesheet_id_t id); 	// Load resource into memory. Returns null if the texture doesn't exist
 int 		resource_load_sprite(sprite_id_t id);							// Load the spritesheet where this sprite resides, and return pointer to the raw texture data
 void 		resource_free_spritesheets();						// Free all spritesheets
+void resource_free_spritesheet(spritesheet_id_t id);
+
 
 // Drawing api
 void	draw_sprite(sprite_id_t id, int32_t x, int32_t y);		// Draw the sprite, load the sprite if it is not loaded. Errors if that sprite doesn't exist

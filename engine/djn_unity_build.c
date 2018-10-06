@@ -7,6 +7,7 @@
 // You can find it here : engine/sdl/lib/x64
 
 #define SDL_MAIN_HANDLED
+#define DJN_ALLOC_LOG
 
 #define _CRT_SECURE_NO_WARNINGS 1
 

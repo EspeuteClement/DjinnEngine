@@ -34,8 +34,6 @@ gpu_texture_t 	resource_load_spritesheet(spritesheet_id_t id)
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y, 0, GL_RGBA, GL_UNSIGNED_BYTE, store->pointer);
-		//DJN_ASSERT(store->pointer >= 0);
-
 
 		printf("Texture (%s) loaded, glTexId : %d \n", game_current_spritesheet_data[id].path, store->gl_texture);
 
@@ -48,13 +46,22 @@ void resource_free_spritesheets()
 	int i = 0;
 	while(storage[i].pointer != NULL && i < MAX_TEXTURES)
 	{
-		//printf("Freeing pointer %p\n", storage[i].pointer);
-		stbi_image_free(storage[i].pointer);
-		glDeleteTextures(1,&storage[i].gl_texture);
-
-		storage[i].pointer = NULL;
-		storage[i].gl_texture = 0;
+		resource_free_spritesheet(i);
 		i ++;
+	}
+}
+
+void resource_free_spritesheet(spritesheet_id_t id)
+{
+	DJN_ASSERT(id >= 0 && id < game_current_texture_count);
+
+	if (storage[id].pointer)
+	{
+		stbi_image_free(storage[id].pointer);
+		glDeleteTextures(1,&storage[id].gl_texture);
+
+		storage[id].pointer = NULL;
+		storage[id].gl_texture = 0;
 	}
 }
 
