@@ -6,5 +6,6 @@ debug.c
 bin/
 obj/
 *.make
+*.png
 Makefile
 res/to_pack/
