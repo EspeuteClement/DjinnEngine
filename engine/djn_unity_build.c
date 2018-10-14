@@ -7,7 +7,6 @@
 // You can find it here : engine/sdl/lib/x64
 
 #define SDL_MAIN_HANDLED
-#define DJN_ALLOC_LOG
 
 #define _CRT_SECURE_NO_WARNINGS 1
 
@@ -21,6 +20,8 @@
 #include "djn_resources.c"
 
 
+#include "djn_files.c"
+
 #ifdef DJN_NO_RELOAD
 #include "../game/game_main.c"
 #include "../game/game_resources.c"
@@ -29,3 +30,5 @@
 #ifndef DJN_NO_IMGUI
 #include "cimgui/djn_imgui.c"
 #endif
+
+#include "djn_sprite_batcher.c"

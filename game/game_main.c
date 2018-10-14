@@ -26,5 +26,5 @@ void step() {
 
 void draw()
 {
-	draw_quad(_game_data->x,_game_data->y,0,64,64,0,0,0,0);
+	draw_quad((float)_game_data->x, (float)_game_data->y,0.0f,64.0f,64.0f,0.0f,0.0f,0.0f,0.0f);
 }

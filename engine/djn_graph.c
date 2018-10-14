@@ -121,7 +121,7 @@ void djn_graph_draw()
 	glUseProgram(program);
     
     float ratio;
-    int width, height;
+//    int width, height;
     mat4x4 m, p, mvp;
 
     ratio = TARGET_HEIGHT / (float) TARGET_WIDTH;
@@ -136,7 +136,7 @@ void djn_graph_draw()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
     glBufferData(GL_ARRAY_BUFFER, vertex_buffer.count * sizeof(vertex_data), vertex_buffer.v, GL_STREAM_DRAW); 
-	glDrawArrays(GL_TRIANGLES, 0, vertex_buffer.count);
+	glDrawArrays(GL_TRIANGLES, 0, (GLuint) vertex_buffer.count);
 
 	vertex_buffer.count = 0;
 }

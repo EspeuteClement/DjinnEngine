@@ -7,3 +7,4 @@ bin/
 obj/
 *.make
 Makefile
+res/to_pack/

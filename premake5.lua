@@ -32,11 +32,10 @@ project "Djinn_Engine"
 	links {"SDL2"}
 	
 
-
+	debugdir "."
 	
 	filter "configurations:Debug*"
 	  defines { "DEBUG" }
-	  debugdir "."
 	  symbols "On"
 
 	filter "configurations:Release*"

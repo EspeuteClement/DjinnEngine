@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 #define DJN_ALLOC_LEAK_DETECT 1
-#define DJN_ALLOC_LOG 1
+#define DJN_ALLOC_LOG 0
 
 #if DJN_ALLOC_LOG
 

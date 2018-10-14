@@ -18,6 +18,7 @@
 #include "djn_resources.h"
 #include "djn_alloc.h"
 #include "djn_graph.h"
+#include "djn_sprite_batcher.h"
 
 #include "../game/game_resources.h"
 
@@ -28,6 +29,7 @@
 #ifndef DJN_NO_RELOAD
 TCCState* load_game_code()
 {
+
     TCCState *s = NULL;
 
     // ----------------------------------
@@ -240,7 +242,7 @@ void load_or_reload_gamecode(game_code* code)
 
         fprintf(stderr, "Allocating %d b of data for the game\n", (int)code->data_size);
         
-        code->data_ptr = (void*) djn_calloc(code->data_size, 0);
+        code->data_ptr = (void*) djn_calloc(code->data_size);
 
         if (!code->data_ptr)
         {
@@ -362,6 +364,9 @@ void djn_engine_frame_begin()
 
 int main(int argc, char **argv)
 {
+	printf("%s\n", argv[0]);
+    djn_sprite_batch_dir("res/to_pack", 0);
+
     SDL_GLContext oglContext;
 
     game_state state = {0};
